@@ -1,0 +1,57 @@
+const express = require("express");
+const { fetchQuote, DEFAULT_WATCHLIST, TOKENS } = require("../angel/market");
+
+const router = express.Router();
+
+// Simple 3s in-memory cache to avoid hammering Angel.
+const cache = new Map();
+const TTL = 3000;
+async function cached(key, fn) {
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.t < TTL) return hit.v;
+  const v = await fn();
+  cache.set(key, { v, t: Date.now() });
+  return v;
+}
+
+function single(key) {
+  return async (_req, res, next) => {
+    try {
+      const out = await cached(key, () => fetchQuote([key]));
+      res.json({ ok: true, data: out.data[0] || null });
+    } catch (e) { next(e); }
+  };
+}
+
+router.get("/nifty", single("NIFTY"));
+router.get("/banknifty", single("BANKNIFTY"));
+router.get("/finnifty", single("FINNIFTY"));
+router.get("/sensex", single("SENSEX"));
+
+router.get("/watchlist", async (req, res, next) => {
+  try {
+    const symbols = (req.query.symbols
+      ? String(req.query.symbols).split(",").map((s) => s.trim()).filter(Boolean)
+      : DEFAULT_WATCHLIST);
+    const key = `wl:${symbols.join(",")}`;
+    const out = await cached(key, () => fetchQuote(symbols));
+    res.json({ ok: true, data: out.data });
+  } catch (e) { next(e); }
+});
+
+router.get("/stock/:symbol", async (req, res, next) => {
+  try {
+    const sym = req.params.symbol.toUpperCase();
+    if (!TOKENS[sym]) {
+      return res.status(404).json({ ok: false, error: `Unknown symbol: ${sym}` });
+    }
+    const out = await cached(`s:${sym}`, () => fetchQuote([sym]));
+    res.json({ ok: true, data: out.data[0] || null });
+  } catch (e) { next(e); }
+});
+
+router.get("/symbols", (_req, res) => {
+  res.json({ ok: true, data: Object.keys(TOKENS) });
+});
+
+module.exports = router;
