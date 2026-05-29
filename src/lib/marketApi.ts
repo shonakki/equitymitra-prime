@@ -4,9 +4,14 @@
  */
 import { useEffect, useRef, useState } from "react";
 
+const PROD_API_FALLBACK =
+  "https://equitymitra-prime-production.up.railway.app";
+
 const API_BASE =
   (import.meta as any).env?.VITE_API_BASE?.replace(/\/$/, "") ||
-  "http://localhost:8080";
+  ((import.meta as any).env?.DEV
+    ? "http://localhost:8080"
+    : PROD_API_FALLBACK);
 const API_KEY = (import.meta as any).env?.VITE_API_KEY || "";
 
 export interface Quote {
