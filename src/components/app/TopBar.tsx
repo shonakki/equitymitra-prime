@@ -76,17 +76,18 @@ function MarketStatus() {
 
 export function TopBar({ onMenu }: { onMenu: () => void }) {
   const { user } = useAuth();
-  const { data: nifty, error: niftyErr } = useLiveQuote(marketApi.nifty, 5000);
+  const { data: nifty } = useLiveQuote(marketApi.nifty, 5000);
   const { data: sensex } = useLiveQuote(marketApi.sensex, 5000);
   const { data: banknifty } = useLiveQuote(marketApi.banknifty, 5000);
 
-  const tickers = niftyErr
+  const tickers = [
+    toTicker("NIFTY", nifty),
+    toTicker("SENSEX", sensex),
+    toTicker("BANKNIFTY", banknifty),
+  ];
+  const displayTickers = tickers.every((t) => t.value === "—" && t.chg === "—" && t.pct === "—")
     ? FALLBACK_TICKERS
-    : [
-        toTicker("NIFTY", nifty),
-        toTicker("SENSEX", sensex),
-        toTicker("BANKNIFTY", banknifty),
-      ];
+    : tickers;
 
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-white/10 bg-background/85 backdrop-blur flex items-center gap-3 px-3 sm:px-5">
@@ -101,7 +102,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
       <MarketStatus />
 
       <div className="hidden lg:flex items-center gap-4 mr-2">
-        {tickers.map((t) => (
+        {displayTickers.map((t) => (
           <div key={t.name} className="flex items-center gap-2">
             <span className="text-[10px] uppercase tracking-wider text-white/45">{t.name}</span>
             <span className="text-xs font-semibold text-white">{t.value}</span>
