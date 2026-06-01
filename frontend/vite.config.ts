@@ -12,4 +12,10 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  // Allow the deployed Railway host for Vite's dev server host checks
+  vite: {
+    server: {
+      allowedHosts: ["equitymitra-prime-production.up.railway.app"],
+    },
+  },
 });
