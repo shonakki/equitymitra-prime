@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Eye, LineChart, Zap, Layers, Activity, Clock, TrendingUp, Gem,
+  Eye, LineChart, TrendingUp,
   Briefcase, History, GraduationCap, StickyNote, CreditCard, User, LogOut, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -8,12 +8,7 @@ import { useAuth } from "@/lib/auth";
 const NAV = [
   { label: "Watchlist", to: "/app", icon: Eye },
   { label: "Markets", to: "/app/market", icon: LineChart },
-  { label: "Intraday", to: "/app/trades", icon: Zap },
-  { label: "Positional", to: "/app/trades", icon: Layers },
-  { label: "Swing", to: "/app/trades", icon: Activity },
-  { label: "Mid Term", to: "/app/trades", icon: Clock },
-  { label: "Long Term", to: "/app/trades", icon: TrendingUp },
-  { label: "Wealth Creator", to: "/app/trades", icon: Gem },
+  { label: "Trade", to: "/app/trades", icon: TrendingUp },
   { label: "Portfolio Tracker", to: "/app/portfolio", icon: Briefcase },
   { label: "Past Performance", to: "/app/performance", icon: History },
   { label: "Learning Videos", to: "/app/learning", icon: GraduationCap },
