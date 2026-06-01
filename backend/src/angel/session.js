@@ -35,6 +35,19 @@ function baseHeaders() {
 }
 
 async function loginInternal() {
+  if (!config.angel.totpSecret) {
+    throw new Error("Missing ANGEL_TOTP_SECRET environment variable on the server.");
+  }
+  if (!config.angel.apiKey) {
+    throw new Error("Missing ANGEL_API_KEY environment variable on the server.");
+  }
+  if (!config.angel.clientCode) {
+    throw new Error("Missing ANGEL_CLIENT_CODE environment variable on the server.");
+  }
+  if (!config.angel.password) {
+    throw new Error("Missing ANGEL_PASSWORD environment variable on the server.");
+  }
+
   const totp = authenticator.generate(config.angel.totpSecret);
   const body = {
     clientcode: config.angel.clientCode,
