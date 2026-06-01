@@ -1,7 +1,7 @@
 /**
  * Lightweight client-side auth stub.
  *
- * Real OTP auth (Lovable Cloud + SMS provider) plugs in by replacing
+ * Real OTP auth plugs in by replacing
  * `login` / `logout`. The `/app` guard keeps working.
  */
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";

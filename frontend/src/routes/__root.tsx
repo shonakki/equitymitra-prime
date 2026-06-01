@@ -82,8 +82,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "EquityMitra — Learn Trading Professionally" },
       { name: "twitter:description", content: "EquityMitra — Learn Trading Professionally. Daily stock analysis, weekly picks, and pro-level courses on Price Action, ATE Price & Volume & Risk Management." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8f3800d5-7efb-4bf2-9124-012abc9e76db/id-preview-efc5ea9c--24beac5f-f9f1-4752-8b1f-a1196db93c59.lovable.app-1779388643904.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8f3800d5-7efb-4bf2-9124-012abc9e76db/id-preview-efc5ea9c--24beac5f-f9f1-4752-8b1f-a1196db93c59.lovable.app-1779388643904.png" },
+      { property: "og:image", content: "https://www.equitymitra.com/og-image.png" },
+      { name: "twitter:image", content: "https://www.equitymitra.com/og-image.png" },
     ],
     links: [
       {
