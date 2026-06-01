@@ -15,7 +15,11 @@ export default defineConfig({
   // Allow the deployed Railway host for Vite's dev server host checks
   vite: {
     server: {
-      allowedHosts: ["equitymitra-prime-production.up.railway.app"],
+      allowedHosts: [
+        "equitymitra-prime-production.up.railway.app",
+        "equitymitra.com",
+        "www.equitymitra.com",
+      ],
     },
   },
 });
