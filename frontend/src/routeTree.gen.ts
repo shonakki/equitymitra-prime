@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppTradesRouteImport } from './routes/app.trades'
+import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AppPortfolioRouteImport } from './routes/app.portfolio'
 import { Route as AppPerformanceRouteImport } from './routes/app.performance'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
@@ -44,6 +45,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppTradesRoute = AppTradesRouteImport.update({
   id: '/trades',
   path: '/trades',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPortfolioRoute = AppPortfolioRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
+  '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
   '/app/': typeof AppIndexRoute
 }
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
+  '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
   '/app': typeof AppIndexRoute
 }
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
+  '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
   '/app/': typeof AppIndexRoute
 }
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
+    | '/app/subscription'
     | '/app/trades'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
+    | '/app/subscription'
     | '/app/trades'
     | '/app'
   id:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
+    | '/app/subscription'
     | '/app/trades'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -198,6 +210,13 @@ declare module '@tanstack/react-router' {
       path: '/trades'
       fullPath: '/app/trades'
       preLoaderRoute: typeof AppTradesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/subscription': {
+      id: '/app/subscription'
+      path: '/subscription'
+      fullPath: '/app/subscription'
+      preLoaderRoute: typeof AppSubscriptionRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/portfolio': {
@@ -252,6 +271,7 @@ interface AppRouteChildren {
   AppNotesRoute: typeof AppNotesRoute
   AppPerformanceRoute: typeof AppPerformanceRoute
   AppPortfolioRoute: typeof AppPortfolioRoute
+  AppSubscriptionRoute: typeof AppSubscriptionRoute
   AppTradesRoute: typeof AppTradesRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -263,6 +283,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNotesRoute: AppNotesRoute,
   AppPerformanceRoute: AppPerformanceRoute,
   AppPortfolioRoute: AppPortfolioRoute,
+  AppSubscriptionRoute: AppSubscriptionRoute,
   AppTradesRoute: AppTradesRoute,
   AppIndexRoute: AppIndexRoute,
 }

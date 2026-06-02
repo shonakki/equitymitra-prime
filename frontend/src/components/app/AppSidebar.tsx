@@ -13,7 +13,7 @@ const NAV = [
   { label: "Past Performance", to: "/app/performance", icon: History },
   { label: "Learning Videos", to: "/app/learning", icon: GraduationCap },
   { label: "Notes PDF Library", to: "/app/notes", icon: StickyNote },
-  { label: "My Subscription", to: "/app/account", icon: CreditCard },
+  { label: "My Subscription", to: "/app/subscription", icon: CreditCard },
   { label: "Profile", to: "/app/account", icon: User },
 ];
 
