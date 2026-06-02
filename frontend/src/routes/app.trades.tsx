@@ -8,12 +8,12 @@ export const Route = createFileRoute("/app/trades")({
   component: TradesPage,
 });
 
-const CATS = ["Intraday", "Positional", "Swing", "Mid Term", "Long Term", "Wealth Creator"] as const;
+const CATS = ["Positional", "Swing", "Mid Term", "Long Term", "Wealth Creator", "F&O"] as const;
 type Cat = typeof CATS[number];
 
 const ALL: Trade[] = [
   {
-    s: "RELIANCE", exch: "NSE • 15m", category: "Intraday", side: "Bullish", setup: "Breakout",
+    s: "RELIANCE", exch: "NSE • F&O", category: "F&O", side: "Bullish", setup: "Breakout",
     entry: "2,945", t1: "2,985", t2: "3,020", sl: "2,922",
     risk: "Low", potential: "+2.5%",
     notes: "Breakout above prior swing high with rising volume. Volume confirming the move.",
@@ -60,6 +60,12 @@ const ALL: Trade[] = [
     risk: "Low", potential: "+7.6%",
     notes: "Healthy pullback to 50-DEMA. Consumption theme intact.",
   },
+  {
+    s: "NIFTY", exch: "NSE • F&O", category: "F&O", side: "Bullish", setup: "Breakout",
+    entry: "17,500", t1: "18,200", t2: "18,900", sl: "17,200",
+    risk: "Medium", potential: "+6.0%",
+    notes: "Index breakout on strong open interest and momentum.",
+  },
 ];
 
 function CategoryTabs({ active, onChange }: { active: Cat; onChange: (c: Cat) => void }) {
@@ -83,7 +89,7 @@ function CategoryTabs({ active, onChange }: { active: Cat; onChange: (c: Cat) =>
 }
 
 function TradesPage() {
-  const [active, setActive] = useState<Cat>("Intraday");
+  const [active, setActive] = useState<Cat>("Positional");
   const visible = ALL.filter((t) => t.category === active);
 
   return (
