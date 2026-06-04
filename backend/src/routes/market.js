@@ -1,5 +1,6 @@
 const express = require("express");
 const { fetchQuote, DEFAULT_WATCHLIST, TOKENS } = require("../angel/market");
+const smartstream = require("../angel/smartstream");
 
 const router = express.Router();
 
@@ -52,6 +53,17 @@ router.get("/stock/:symbol", async (req, res, next) => {
 
 router.get("/symbols", (_req, res) => {
   res.json({ ok: true, data: Object.keys(TOKENS) });
+});
+
+/**
+ * GET /api/candles/:symbol
+ * Returns accumulated 1-min OHLC candles for NIFTY or BANKNIFTY.
+ * Candles are built live from SmartStream ticks since server start.
+ */
+router.get("/candles/:symbol", (req, res) => {
+  const sym = req.params.symbol.toUpperCase();
+  const candles = smartstream.getCandles(sym);
+  res.json({ ok: true, data: candles });
 });
 
 module.exports = router;
