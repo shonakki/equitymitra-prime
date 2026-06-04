@@ -40,6 +40,51 @@ export async function apiFetch<T = unknown>(path: string, init?: RequestInit): P
   return json.data;
 }
 
+export interface SectorPerformance {
+  name: string;
+  pct: string;
+  up: boolean;
+}
+
+export interface GainerLoserRow {
+  s: string;
+  p: string;
+  c: string;
+}
+
+export interface MarketBreadth {
+  advances: number;
+  declines: number;
+  unchanged: number;
+  ratio: string;
+}
+
+export interface MarketSentiment {
+  value: string;
+  score: number;
+  explanation: string;
+}
+
+export interface IPOCalendarItem {
+  name: string;
+  openDate: string;
+  closeDate: string;
+  issueSize: string;
+  priceBand: string;
+  lotSize: string;
+  status: string;
+}
+
+export interface DashboardData {
+  sectors: SectorPerformance[];
+  gainers: GainerLoserRow[];
+  losers: GainerLoserRow[];
+  breadth: MarketBreadth;
+  sentiment: MarketSentiment;
+  ipos: IPOCalendarItem[] | null;
+  updatedAt: string;
+}
+
 export const marketApi = {
   nifty: () => apiFetch<Quote>("/api/nifty"),
   banknifty: () => apiFetch<Quote>("/api/banknifty"),
@@ -50,6 +95,7 @@ export const marketApi = {
       `/api/watchlist${symbols?.length ? `?symbols=${symbols.join(",")}` : ""}`
     ),
   stock: (symbol: string) => apiFetch<Quote>(`/api/stock/${symbol.toUpperCase()}`),
+  dashboard: () => apiFetch<DashboardData>("/api/dashboard"),
 };
 
 /**

@@ -1,15 +1,17 @@
 const express = require("express");
 const { fetchQuote, DEFAULT_WATCHLIST, TOKENS } = require("../angel/market");
 const smartstream = require("../angel/smartstream");
+const dashboard = require("../angel/dashboard");
+const nseApi = require("../angel/nseApi");
 
 const router = express.Router();
 
 // Simple 3s in-memory cache to avoid hammering Angel.
 const cache = new Map();
 const TTL = 3000;
-async function cached(key, fn) {
+async function cached(key, fn, customTTL = TTL) {
   const hit = cache.get(key);
-  if (hit && Date.now() - hit.t < TTL) return hit.v;
+  if (hit && Date.now() - hit.t < customTTL) return hit.v;
   const v = await fn();
   cache.set(key, { v, t: Date.now() });
   return v;
@@ -64,6 +66,19 @@ router.get("/candles/:symbol", (req, res) => {
   const sym = req.params.symbol.toUpperCase();
   const candles = smartstream.getCandles(sym);
   res.json({ ok: true, data: candles });
+});
+
+router.get("/dashboard", async (req, res, next) => {
+  try {
+    const data = await cached("market_dashboard", async () => {
+      const dash = await dashboard.getDashboardData();
+      const ipos = await nseApi.getIpoCalendar();
+      return { ...dash, ipos };
+    }, 15000);
+    res.json({ ok: true, data });
+  } catch (e) {
+    next(e);
+  }
 });
 
 module.exports = router;

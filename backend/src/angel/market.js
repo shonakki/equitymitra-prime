@@ -9,22 +9,26 @@
  */
 const { angelPost } = require("./session");
 
+const fs = require("fs");
+const path = require("path");
+
+let tokensJson = {};
+try {
+  const tokensPath = path.join(__dirname, "tokens.json");
+  if (fs.existsSync(tokensPath)) {
+    tokensJson = JSON.parse(fs.readFileSync(tokensPath, "utf-8"));
+  }
+} catch (e) {
+  console.error("[market] Failed to load tokens.json:", e.message);
+}
+
 // NSE indices and common F&O stock tokens (verify against Angel scrip master).
 const TOKENS = {
   NIFTY: { exchange: "NSE", token: "99926000", symbol: "NIFTY 50" },
   BANKNIFTY: { exchange: "NSE", token: "99926009", symbol: "NIFTY BANK" },
   FINNIFTY: { exchange: "NSE", token: "99926037", symbol: "NIFTY FIN SERVICE" },
   SENSEX: { exchange: "BSE", token: "99919000", symbol: "SENSEX" },
-
-  RELIANCE: { exchange: "NSE", token: "2885", symbol: "RELIANCE-EQ" },
-  TCS: { exchange: "NSE", token: "11536", symbol: "TCS-EQ" },
-  HDFCBANK: { exchange: "NSE", token: "1333", symbol: "HDFCBANK-EQ" },
-  INFY: { exchange: "NSE", token: "1594", symbol: "INFY-EQ" },
-  ICICIBANK: { exchange: "NSE", token: "4963", symbol: "ICICIBANK-EQ" },
-  SBIN: { exchange: "NSE", token: "3045", symbol: "SBIN-EQ" },
-  TATAMOTORS: { exchange: "NSE", token: "3456", symbol: "TATAMOTORS-EQ" },
-  ADANIENT: { exchange: "NSE", token: "25", symbol: "ADANIENT-EQ" },
-  LT: { exchange: "NSE", token: "11483", symbol: "LT-EQ" },
+  ...tokensJson
 };
 
 const DEFAULT_WATCHLIST = [
