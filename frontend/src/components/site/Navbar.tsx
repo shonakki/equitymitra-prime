@@ -4,9 +4,6 @@ import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 
 const LINKS = [
-  { href: "#market", label: "Market" },
-  { href: "#analysis", label: "Daily" },
-  { href: "#picks", label: "Weekly" },
   { href: "#learn", label: "Academy" },
   { href: "#youtube", label: "YouTube" },
   { href: "#pricing", label: "Pricing" },
