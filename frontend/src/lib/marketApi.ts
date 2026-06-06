@@ -15,7 +15,7 @@ export interface Quote {
   key: string;
   symbol: string;
   exchange: string;
-  token: string;
+  token: string | null;
   ltp: number | null;
   open: number | null;
   high: number | null;
@@ -24,6 +24,18 @@ export interface Quote {
   netChange: number | null;
   percentChange: number | null;
   volume: number | null;
+  raw?: unknown;
+  companyName?: string | null;
+  sector?: string | null;
+  industry?: string | null;
+  marketCap?: number | null;
+  pe?: number | null;
+  pb?: number | null;
+  roe?: number | null;
+  roce?: number | null;
+  debtToEquity?: number | null;
+  revenueGrowth?: number | null;
+  profitGrowth?: number | null;
 }
 
 export async function apiFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {

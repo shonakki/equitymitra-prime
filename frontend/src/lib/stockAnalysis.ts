@@ -1,36 +1,38 @@
+import { marketApi } from "./marketApi";
+
 export type StockOverview = {
   symbol: string;
   companyName: string;
   exchange: string;
   segment: string;
   sector: string;
-  lastPrice: number;
-  change: number;
-  percentChange: number;
-  marketCap: string;
-  avgVolume: string;
-  deliveryPercent: number;
-  listingDate: string;
+  lastPrice: number | null;
+  change: number | null;
+  percentChange: number | null;
+  marketCap: number | null;
+  avgVolume: number | null;
+  deliveryPercent: number | null;
+  listingDate: string | null;
 };
 
 export type TechnicalAnalysis = {
-  rsi: number;
+  rsi: number | null;
   trend: "Uptrend" | "Neutral" | "Downtrend";
   momentum: "Strong" | "Moderate" | "Weak";
-  support: number;
-  resistance: number;
+  support: number | null;
+  resistance: number | null;
   score: number;
 };
 
 export type FundamentalAnalysis = {
-  pe: number;
-  pb: number;
-  roe: number;
-  roce: number;
-  debtToEquity: number;
-  promoterHolding: number;
-  revenueGrowth: number;
-  profitGrowth: number;
+  pe: number | null;
+  pb: number | null;
+  roe: number | null;
+  roce: number | null;
+  debtToEquity: number | null;
+  promoterHolding: number | null;
+  revenueGrowth: number | null;
+  profitGrowth: number | null;
   score: number;
 };
 
@@ -66,15 +68,8 @@ function round(value: number, digits = 1) {
   return Math.round(value * factor) / factor;
 }
 
-function hashCode(value: string) {
-  return value
-    .toUpperCase()
-    .split("")
-    .reduce((sum, char) => sum + char.codePointAt(0) ?? 0, 0);
-}
-
-function choose<T>(options: T[], seed: number) {
-  return options[seed % options.length];
+function parseNumber(value: number | null | undefined) {
+  return typeof value === "number" && !Number.isNaN(value) ? value : null;
 }
 
 function formatLarge(value: number) {
@@ -84,157 +79,233 @@ function formatLarge(value: number) {
   return `${round(value, 1)}`;
 }
 
-const SECTORS = [
-  "Financials",
-  "Technology",
-  "Consumer Goods",
-  "Energy",
-  "Pharma",
-  "Auto",
-  "Materials",
-  "Services",
-  "Healthcare",
-  "Utilities",
-];
-
-const SEGMENTS = ["Large Cap", "Mid Cap", "Small Cap", "Micro Cap", "SME"];
-
-const ACTIONS: Record<string, string> = {
-  Low: "Add to your watchlist and accumulate on weakness.",
-  Moderate: "Buy selectively with a defined stop loss.",
-  High: "Avoid new positions until risk clears.",
-};
-
-const VERDICTS = {
+const VERDICTS: Record<"Low" | "Moderate" | "High", string> = {
   Low: "EquityMitra AI rates this stock as a high-conviction opportunity with structural support and earnings quality.",
   Moderate: "EquityMitra AI finds a balanced thesis. Use selective allocation and monitor near-term catalysts.",
   High: "EquityMitra AI recommends caution. Wait for clearer accumulation and improved liquidity before acting.",
 };
 
-export function generateStockAnalysis(symbol: string): StockAnalysisData {
-  const normalized = symbol.trim().toUpperCase() || "NSE";
-  const seed = hashCode(normalized);
-  const priceBase = clamp(25 + (seed % 940), 30, 980);
-  const isBullish = seed % 5 !== 0;
+function getSegment(marketCap: number | null) {
+  if (marketCap == null) return "Data Unavailable";
+  if (marketCap >= 2e11) return "Large Cap";
+  if (marketCap >= 2e10) return "Mid Cap";
+  if (marketCap >= 2e9) return "Small Cap";
+  if (marketCap > 0) return "Micro Cap";
+  return "Data Unavailable";
+}
 
-  const technicalScore = clamp(45 + (seed % 50) + (isBullish ? 5 : -5), 35, 98);
-  const fundamentalScore = clamp(40 + ((seed * 3) % 50) - (seed % 7), 32, 96);
-  const convictionScore = clamp(Math.round((technicalScore * 0.4 + fundamentalScore * 0.4 + 20) / 1), 35, 98);
-  const overallScore = clamp(Math.round((technicalScore * 0.36 + fundamentalScore * 0.36 + convictionScore * 0.28) / 1), 36, 99);
+function buildTechnicalScore(
+  percentChange: number | null,
+  trend: TechnicalAnalysis["trend"],
+  marketCap: number | null
+) {
+  let score = 50;
+  if (trend === "Uptrend") score += 10;
+  if (trend === "Downtrend") score -= 10;
+  if (percentChange != null) score += clamp(percentChange * 1.5, -12, 12);
+  if (marketCap != null) score += marketCap >= 2e11 ? 4 : marketCap <= 2e10 ? -2 : 0;
+  return clamp(Math.round(score), 25, 90);
+}
 
-  const riskLevel = overallScore >= 72 ? "Low" : overallScore >= 52 ? "Moderate" : "High";
-  const suggestedAction = overallScore >= 70 ? "Buy" : overallScore >= 50 ? "Hold" : "Reduce";
-  const suggestedHoldingPeriod = overallScore >= 80 ? "12+ months" : overallScore >= 60 ? "6 - 12 months" : "3 - 6 months";
+function buildFundamentalScore(fund: FundamentalAnalysis) {
+  let score = 48;
+  if (fund.pe != null) score += fund.pe < 18 ? 8 : fund.pe > 35 ? -8 : 0;
+  if (fund.pb != null) score += fund.pb < 3 ? 5 : fund.pb > 6 ? -5 : 0;
+  if (fund.roe != null) score += fund.roe >= 15 ? 8 : fund.roe < 8 ? -6 : 0;
+  if (fund.roce != null) score += fund.roce >= 16 ? 6 : fund.roce < 10 ? -5 : 0;
+  if (fund.debtToEquity != null) score += fund.debtToEquity <= 1 ? 5 : fund.debtToEquity >= 2 ? -5 : 0;
+  if (fund.revenueGrowth != null) score += fund.revenueGrowth >= 10 ? 5 : fund.revenueGrowth < 0 ? -5 : 0;
+  if (fund.profitGrowth != null) score += fund.profitGrowth >= 10 ? 5 : fund.profitGrowth < 0 ? -5 : 0;
+  return clamp(Math.round(score), 30, 90);
+}
 
-  const trend = choose<"Uptrend" | "Neutral" | "Downtrend">(["Uptrend", "Neutral", "Downtrend"], seed);
-  const momentum = choose<"Strong" | "Moderate" | "Weak">(["Strong", "Moderate", "Weak"], seed + 1);
-  const technicalRsi = clamp(30 + (seed % 50) + (trend === "Uptrend" ? 5 : trend === "Downtrend" ? -3 : 0), 28, 78);
+function buildOperatorRisk(
+  volume: number | null,
+  percentChange: number | null,
+  deliveryPercent: number | null
+): OperatorRiskAnalysis {
+  const liquidityRisk = volume == null ? "Moderate" : volume > 5_000_000 ? "Low" : "Moderate";
+  const volumeQuality = volume == null ? "Medium" : volume > 10_000_000 ? "High" : volume > 3_000_000 ? "Medium" : "Low";
+  const deliveryStrength = deliveryPercent == null ? "Stable" : deliveryPercent >= 40 ? "Strong" : deliveryPercent >= 25 ? "Stable" : "Weak";
+  const operatorActivity = percentChange == null ? "Moderate" : Math.abs(percentChange) >= 4 ? "Active" : "Moderate";
+  const riskScore = (liquidityRisk === "High" ? 2 : liquidityRisk === "Moderate" ? 1 : 0) + (operatorActivity === "Active" ? 2 : 0);
+  const riskLevel = riskScore >= 3 ? "High" : riskScore === 2 ? "Moderate" : "Low";
 
-  const support = round(priceBase - clamp(3 + (seed % 22), 3, 22), 2);
-  const resistance = round(priceBase + clamp(3 + ((seed + 7) % 26), 4, 29), 2);
+  return {
+    liquidityRisk,
+    volumeQuality,
+    deliveryStrength,
+    operatorActivity,
+    riskLevel,
+  };
+}
 
-  const pe = clamp(8 + (seed % 28) + (fundamentalScore > 72 ? 8 : 0), 9, 62);
-  const pb = clamp(0.8 + ((seed % 12) * 0.15), 0.8, 4.9);
-  const roe = clamp(8 + ((seed + 9) % 27), 8, 32);
-  const roce = clamp(10 + ((seed + 12) % 29), 10, 38);
-  const debtToEquity = clamp(0.2 + ((seed % 40) * 0.05), 0.2, 2.4);
-  const promoterHolding = clamp(18 + ((seed + 6) % 56), 18, 78);
-  const revenueGrowth = clamp(3 + ((seed + 3) % 32), 3, 35);
-  const profitGrowth = clamp(2 + ((seed + 5) % 30), 2, 32);
+function buildStrengths(
+  companyName: string,
+  sector: string,
+  quote: { lastPrice: number | null; percentChange: number | null },
+  fundamentals: FundamentalAnalysis
+) {
+  const strengths: string[] = [];
+  strengths.push(`Analysis is sourced from the latest quote and verified company metadata for ${companyName}.`);
+  strengths.push(sector !== "Data Unavailable" ? `${sector} sector data is included where available.` : "Sector-level metadata is pending from external sources.");
 
-  const liquidityRisk = overallScore >= 72 ? "Low" : overallScore >= 50 ? "Moderate" : "High";
-  const volumeQuality = seed % 3 === 0 ? "High" : seed % 3 === 1 ? "Medium" : "Low";
-  const deliveryStrength = seed % 4 === 0 ? "Strong" : seed % 4 === 1 ? "Stable" : "Weak";
-  const operatorActivity = seed % 2 === 0 ? "Active" : "Moderate";
+  if (quote.percentChange != null) {
+    strengths.push(
+      `Latest session changed ${quote.percentChange >= 0 ? "up" : "down"} ${Math.abs(round(quote.percentChange, 2))}% on verified price data.`
+    );
+  }
+  if (fundamentals.pe != null) {
+    strengths.push(`Price-to-Earnings is derived from actual reported fundamentals.`);
+  }
+  if (fundamentals.roe != null) {
+    strengths.push(`ROE is sourced from actual trailing financials.`);
+  }
+  return strengths.slice(0, 3);
+}
 
-  const strengths = [
-    choose([
-      "Structural trend confirmed by premium volume",
-      "Sector leadership with consistent relative strength",
-      "Strong cash conversion and working capital discipline",
-      "Healthy delivery ratio and institutional support",
-      "Market-friendly management commentary with execution clarity",
-    ], seed),
-    choose([
-      "Technical score indicates a resilient thesis",
-      "Fundamental metrics are above industry averages",
-      "Low operator risk relative to peers",
-      "Reward/risk profile favors disciplined accumulation",
-      "AI verdict supports selective long-term exposure",
-    ], seed + 7),
-  ];
+function buildRisks(
+  quote: { lastPrice: number | null; percentChange: number | null; open: number | null; low: number | null; high: number | null },
+  fundamentals: FundamentalAnalysis
+) {
+  const risks: string[] = [];
+  if (quote.percentChange != null && Math.abs(quote.percentChange) > 5) {
+    risks.push("Price is exhibiting elevated volatility in the latest session.");
+  }
+  if (fundamentals.debtToEquity != null && fundamentals.debtToEquity > 1.5) {
+    risks.push("Debt-to-equity is higher than conservative thresholds.");
+  }
+  if (fundamentals.pe != null && fundamentals.pe > 30) {
+    risks.push("Valuation appears stretched relative to growth expectations.");
+  }
+  if (!risks.length) {
+    risks.push("Current public data is limited; review fresh financial filings before committing.");
+  }
+  return risks.slice(0, 3);
+}
 
-  const risks = [
-    choose([
-      "Price is extended above first resistance zone",
-      "Debt levels require ongoing execution discipline",
-      "Liquidity could compress on broader market weakness",
-      "Promoter stake is high, leaving limited free float",
-      "Earnings outcome is sensitive to margin recovery",
-    ], seed + 4),
-    choose([
-      "Operator activity is elevated in the near term",
-      "Growth expectations are priced in at current levels",
-      "Sector volatility may widen around events",
-      "Delivery percentage is moderate for the current market phase",
-      "Fundamental score needs revenue growth to sustain the thesis",
-    ], seed + 11),
-  ];
+function buildMarketCapDisplay(value: number | null) {
+  return value == null ? "Data Unavailable" : `₹${formatLarge(value)}`;
+}
 
-  const segment = choose(SEGMENTS, seed % SEGMENTS.length);
-  const sector = choose(SECTORS, seed % SECTORS.length);
-  const marketCapValue = priceBase * clamp((seed % 580) + 70, 75, 820);
-  const marketCap = `${formatLarge(marketCapValue * 1_000_000)} INR`;
-  const avgVolumeValue = clamp((seed % 320) + 12, 12, 320) * 1000;
+function buildVolumeDisplay(value: number | null) {
+  return value == null ? "Data Unavailable" : `${formatLarge(value)} shares`;
+}
+
+function buildPercentDisplay(value: number | null) {
+  return value == null ? "Data Unavailable" : `${round(value, 2)}%`;
+}
+
+function buildCurrencyDisplay(value: number | null) {
+  return value == null ? "Data Unavailable" : `₹${round(value, 2)}`;
+}
+
+export async function fetchStockAnalysis(symbol: string): Promise<StockAnalysisData> {
+  const normalized = symbol.trim().toUpperCase();
+  const quote = await marketApi.stock(normalized);
+
+  const companyName = quote.companyName || quote.symbol;
+  const sector = quote.sector || "Data Unavailable";
+  const lastPrice = parseNumber(quote.ltp ?? quote.close);
+  const openPrice = parseNumber(quote.open);
+  const change = parseNumber(quote.netChange) ?? (lastPrice != null && openPrice != null ? lastPrice - openPrice : null);
+  const percentChange = parseNumber(quote.percentChange) ?? (change != null && openPrice != null && openPrice !== 0 ? (change / openPrice) * 100 : null);
+  const marketCap = parseNumber(quote.marketCap);
+  const avgVolume = parseNumber(quote.volume);
+  const hasBaseData =
+    lastPrice != null ||
+    openPrice != null ||
+    marketCap != null ||
+    quote.pe != null ||
+    quote.pb != null ||
+    quote.roe != null ||
+    quote.revenueGrowth != null ||
+    quote.profitGrowth != null;
+
+  if (!hasBaseData) {
+    throw new Error(
+      "No reliable price or fundamental data is available for this symbol. Configure a supported provider or choose a different NSE stock."
+    );
+  }
+
+  const rsi = null;
+  const trend =
+    lastPrice != null && openPrice != null
+      ? lastPrice > openPrice * 1.01
+        ? "Uptrend"
+        : lastPrice < openPrice * 0.99
+        ? "Downtrend"
+        : "Neutral"
+      : "Neutral";
+  const momentum =
+    percentChange == null
+      ? "Moderate"
+      : Math.abs(percentChange) >= 3
+      ? "Strong"
+      : Math.abs(percentChange) >= 1
+      ? "Moderate"
+      : "Weak";
+  const support = parseNumber(quote.low);
+  const resistance = parseNumber(quote.high);
+
+  const technicalScore = buildTechnicalScore(percentChange, trend, marketCap);
+
+  const fundamental: FundamentalAnalysis = {
+    pe: parseNumber(quote.pe),
+    pb: parseNumber(quote.pb),
+    roe: parseNumber(quote.roe),
+    roce: parseNumber(quote.roce),
+    debtToEquity: parseNumber(quote.debtToEquity),
+    promoterHolding: null,
+    revenueGrowth: parseNumber(quote.revenueGrowth),
+    profitGrowth: parseNumber(quote.profitGrowth),
+    score: 0,
+  };
+  fundamental.score = buildFundamentalScore(fundamental);
+
+  const companySegment = getSegment(marketCap);
+  const operatorRisk = buildOperatorRisk(avgVolume, percentChange, null);
+  const convictionScore = clamp(Math.round((technicalScore + fundamental.score) / 2), 30, 90);
+  const overallScore = clamp(Math.round((technicalScore * 0.45 + fundamental.score * 0.35 + convictionScore * 0.2) / 1), 30, 90);
+  const riskLevel = overallScore >= 70 ? "Low" : overallScore >= 50 ? "Moderate" : "High";
+  const suggestedAction = overallScore >= 68 ? "Buy" : overallScore >= 50 ? "Hold" : "Reduce";
+  const suggestedHoldingPeriod = overallScore >= 75 ? "12+ months" : overallScore >= 60 ? "6 - 12 months" : "3 - 6 months";
+
+  const strengths = buildStrengths(companyName, sector, { lastPrice, percentChange }, fundamental);
+  const risks = buildRisks({ lastPrice, percentChange, open: openPrice, low: support, high: resistance }, fundamental);
 
   return {
     stockOverview: {
-      symbol: normalized,
-      companyName: `${normalized} Industries Limited`,
-      exchange: "NSE",
-      segment,
+      symbol: quote.symbol,
+      companyName,
+      exchange: quote.exchange || "NSE",
+      segment: companySegment,
       sector,
-      lastPrice: round(priceBase, 2),
-      change: round((isBullish ? 1 : -1) * (0.8 + ((seed % 45) * 0.14)), 2),
-      percentChange: round((isBullish ? 1 : -1) * (0.4 + ((seed % 28) * 0.12)), 2),
+      lastPrice,
+      change,
+      percentChange,
       marketCap,
-      avgVolume: `${formatLarge(avgVolumeValue)} shares`,
-      deliveryPercent: clamp(25 + ((seed + 19) % 46), 25, 70),
-      listingDate: `${2010 + (seed % 13)}-${String((seed % 12) + 1).padStart(2, "0")}-01`,
+      avgVolume,
+      deliveryPercent: null,
+      listingDate: null,
     },
     technical: {
-      rsi: technicalRsi,
+      rsi,
       trend,
       momentum,
       support,
       resistance,
       score: technicalScore,
     },
-    fundamental: {
-      pe,
-      pb: round(pb, 2),
-      roe,
-      roce,
-      debtToEquity: round(debtToEquity, 2),
-      promoterHolding,
-      revenueGrowth,
-      profitGrowth,
-      score: fundamentalScore,
-    },
-    operatorRisk: {
-      liquidityRisk,
-      volumeQuality,
-      deliveryStrength,
-      operatorActivity,
-      riskLevel,
-    },
+    fundamental,
+    operatorRisk,
     strengths,
     risks,
     overallScore,
     convictionScore,
     riskLevel,
-    suggestedAction: suggestedAction as "Buy" | "Hold" | "Reduce",
+    suggestedAction,
     suggestedHoldingPeriod,
-    aiVerdict: VERDICTS[riskLevel],
+    aiVerdict: VERDICTS[riskLevel] || "Use the facts above to guide disciplined allocation.",
   };
 }

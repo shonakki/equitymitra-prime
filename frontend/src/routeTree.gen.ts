@@ -19,8 +19,8 @@ import { Route as AppPortfolioRouteImport } from './routes/app.portfolio'
 import { Route as AppPerformanceRouteImport } from './routes/app.performance'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppMarketRouteImport } from './routes/app.market'
-import { Route as AppAnalyzeRouteImport } from './routes/app.analyze'
 import { Route as AppLearningRouteImport } from './routes/app.learning'
+import { Route as AppAnalyzeRouteImport } from './routes/app.analyze'
 import { Route as AppAccountRouteImport } from './routes/app.account'
 
 const LoginRoute = LoginRouteImport.update({
@@ -73,14 +73,14 @@ const AppMarketRoute = AppMarketRouteImport.update({
   path: '/market',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAnalyzeRoute = AppAnalyzeRouteImport.update({
-  id: '/analyze',
-  path: '/analyze',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppLearningRoute = AppLearningRouteImport.update({
   id: '/learning',
   path: '/learning',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyzeRoute = AppAnalyzeRouteImport.update({
+  id: '/analyze',
+  path: '/analyze',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAccountRoute = AppAccountRouteImport.update({
@@ -94,9 +94,9 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/app/account': typeof AppAccountRoute
+  '/app/analyze': typeof AppAnalyzeRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
-  '/app/analyze': typeof AppAnalyzeRoute
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
@@ -108,9 +108,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/app/account': typeof AppAccountRoute
+  '/app/analyze': typeof AppAnalyzeRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
-  '/app/analyze': typeof AppAnalyzeRoute
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
@@ -124,9 +124,9 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/app/account': typeof AppAccountRoute
+  '/app/analyze': typeof AppAnalyzeRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
-  '/app/analyze': typeof AppAnalyzeRoute
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
@@ -141,9 +141,9 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/app/account'
+    | '/app/analyze'
     | '/app/learning'
     | '/app/market'
-    | '/app/analyze'
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
@@ -155,9 +155,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/app/account'
+    | '/app/analyze'
     | '/app/learning'
     | '/app/market'
-    | '/app/analyze'
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
@@ -170,9 +170,9 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/app/account'
+    | '/app/analyze'
     | '/app/learning'
     | '/app/market'
-    | '/app/analyze'
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
@@ -259,18 +259,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMarketRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/analyze': {
-      id: '/app/analyze'
-      path: '/analyze'
-      fullPath: '/app/analyze'
-      preLoaderRoute: typeof AppAnalyzeRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/learning': {
       id: '/app/learning'
       path: '/learning'
       fullPath: '/app/learning'
       preLoaderRoute: typeof AppLearningRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/analyze': {
+      id: '/app/analyze'
+      path: '/analyze'
+      fullPath: '/app/analyze'
+      preLoaderRoute: typeof AppAnalyzeRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/account': {
@@ -285,9 +285,9 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
+  AppAnalyzeRoute: typeof AppAnalyzeRoute
   AppLearningRoute: typeof AppLearningRoute
   AppMarketRoute: typeof AppMarketRoute
-  AppAnalyzeRoute: typeof AppAnalyzeRoute
   AppNotesRoute: typeof AppNotesRoute
   AppPerformanceRoute: typeof AppPerformanceRoute
   AppPortfolioRoute: typeof AppPortfolioRoute
@@ -298,9 +298,9 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
+  AppAnalyzeRoute: AppAnalyzeRoute,
   AppLearningRoute: AppLearningRoute,
   AppMarketRoute: AppMarketRoute,
-  AppAnalyzeRoute: AppAnalyzeRoute,
   AppNotesRoute: AppNotesRoute,
   AppPerformanceRoute: AppPerformanceRoute,
   AppPortfolioRoute: AppPortfolioRoute,

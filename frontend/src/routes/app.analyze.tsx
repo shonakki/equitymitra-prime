@@ -14,7 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
-import { generateStockAnalysis, type StockAnalysisData } from "@/lib/stockAnalysis";
+import { fetchStockAnalysis, type StockAnalysisData } from "@/lib/stockAnalysis";
 
 export const Route = createFileRoute("/app/analyze")({
   component: AnalyzeStockPage,
@@ -37,11 +37,12 @@ function Badge({ children, variant }: { children: string; variant: "ghost" | "su
   );
 }
 
-function StatCard({ label, value, meta }: { label: string; value: string; meta?: string }) {
+function StatCard({ label, value, meta }: { label: string; value: string | number | null; meta?: string }) {
+  const display = value == null ? "Data Unavailable" : value;
   return (
     <div className="rounded-3xl border border-white/10 bg-card/60 p-5">
       <p className="text-sm text-white/50 uppercase tracking-[0.2em]">{label}</p>
-      <p className="mt-3 text-2xl font-bold text-white leading-none">{value}</p>
+      <p className="mt-3 text-2xl font-bold text-white leading-none">{display}</p>
       {meta && <p className="mt-2 text-xs text-white/50">{meta}</p>}
     </div>
   );
@@ -65,13 +66,13 @@ function ScoreMeter({ label, score, accent }: { label: string; score: number; ac
   );
 }
 
-function FieldGrid({ items }: { items: Array<{ label: string; value: string }> }) {
+function FieldGrid({ items }: { items: Array<{ label: string; value: string | number | null }> }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {items.map((item) => (
         <div key={item.label} className="rounded-3xl border border-white/10 bg-white/5 p-4">
           <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">{item.label}</p>
-          <p className="mt-2 text-sm font-semibold text-white">{item.value}</p>
+          <p className="mt-2 text-sm font-semibold text-white">{item.value == null ? "Data Unavailable" : item.value}</p>
         </div>
       ))}
     </div>
@@ -96,17 +97,61 @@ function AnalysisCard({ title, icon, children }: { title: string; icon: React.Co
   );
 }
 
+function formatMetric(value: number | null | undefined, decimals = 2) {
+  if (value == null || Number.isNaN(value)) return "Data Unavailable";
+  return value.toFixed(decimals);
+}
+
+function formatCurrency(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) return "Data Unavailable";
+  return `₹${value.toFixed(2)}`;
+}
+
+function formatLargeNumber(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) return "Data Unavailable";
+  if (value >= 1_000_000_000) return `₹${(value / 1_000_000_000).toFixed(2)}T`;
+  if (value >= 1_000_000) return `₹${(value / 1_000_000).toFixed(2)}B`;
+  if (value >= 1_000) return `₹${(value / 1_000).toFixed(1)}M`;
+  return `₹${value.toFixed(2)}`;
+}
+
+function formatLargeCount(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) return "Data Unavailable";
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B shares`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M shares`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K shares`;
+  return `${value.toLocaleString()} shares`;
+}
+
 function AnalyzeStockPage() {
   const [query, setQuery] = useState("");
   const [analysis, setAnalysis] = useState<StockAnalysisData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
     const symbol = query.trim().toUpperCase();
-    if (symbol) {
-      setAnalysis(generateStockAnalysis(symbol));
+    if (!symbol) {
+      setError("Enter a valid NSE stock symbol to generate analysis.");
+      setAnalysis(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setAnalysis(null);
+
+    try {
+      const data = await fetchStockAnalysis(symbol);
+      setAnalysis(data);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : String(caught);
+      setError(message || "Unable to fetch data for this symbol.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,7 +184,10 @@ function AnalyzeStockPage() {
               Analyze
             </button>
           </form>
-          {submitted && !query.trim() && (
+          {error && (
+            <p className="mt-4 text-sm text-red-400">{error}</p>
+          )}
+          {submitted && !query.trim() && !error && (
             <p className="mt-4 text-sm text-red-400">Enter a valid NSE stock symbol to generate analysis.</p>
           )}
         </div>
@@ -167,7 +215,12 @@ function AnalyzeStockPage() {
         </div>
       </div>
 
-      {analysis ? (
+      {loading ? (
+        <div className="rounded-3xl border border-white/10 bg-card/60 p-6 text-center text-white/60">
+          <Activity className="mx-auto mb-3 h-10 w-10 text-[var(--gold)] animate-spin" />
+          <p className="text-sm">Loading the latest research dashboard...</p>
+        </div>
+      ) : analysis ? (
         <div className="space-y-6">
           <div className="grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
             <div className="rounded-3xl border border-white/10 bg-card/60 p-6">
@@ -185,9 +238,17 @@ function AnalyzeStockPage() {
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <StatCard label="Last Price" value={`₹${analysis.stockOverview.lastPrice.toFixed(2)}`} meta={`${analysis.stockOverview.change > 0 ? "+" : ""}${analysis.stockOverview.change.toFixed(2)} (${analysis.stockOverview.percentChange.toFixed(2)}%)`} />
-                <StatCard label="Market Cap" value={analysis.stockOverview.marketCap} meta={`Avg vol ${analysis.stockOverview.avgVolume}`} />
-                <StatCard label="Delivery" value={`${analysis.stockOverview.deliveryPercent}%`} meta={`Listed since ${analysis.stockOverview.listingDate}`} />
+                <StatCard
+                  label="Last Price"
+                  value={analysis.stockOverview.lastPrice == null ? null : `₹${analysis.stockOverview.lastPrice.toFixed(2)}`}
+                  meta={
+                    analysis.stockOverview.change == null || analysis.stockOverview.percentChange == null
+                      ? undefined
+                      : `${analysis.stockOverview.change > 0 ? "+" : ""}${analysis.stockOverview.change.toFixed(2)} (${analysis.stockOverview.percentChange.toFixed(2)}%)`
+                  }
+                />
+                <StatCard label="Market Cap" value={analysis.stockOverview.marketCap == null ? null : formatLargeNumber(analysis.stockOverview.marketCap)} meta={`Avg vol ${analysis.stockOverview.avgVolume == null ? "Data Unavailable" : formatLargeCount(analysis.stockOverview.avgVolume)}`} />
+                <StatCard label="Delivery" value={analysis.stockOverview.deliveryPercent == null ? null : `${analysis.stockOverview.deliveryPercent}%`} meta={`Listed since ${analysis.stockOverview.listingDate ?? "Data Unavailable"}`} />
                 <StatCard label="Exchange" value={analysis.stockOverview.exchange} meta={`${analysis.stockOverview.segment}`} />
               </div>
             </div>
@@ -209,11 +270,11 @@ function AnalyzeStockPage() {
             <AnalysisCard title="Technical Analysis" icon={Gauge}>
               <FieldGrid
                 items={[
-                  { label: "RSI", value: `${analysis.technical.rsi}` },
+                  { label: "RSI", value: analysis.technical.rsi == null ? null : formatMetric(analysis.technical.rsi, 1) },
                   { label: "Trend", value: analysis.technical.trend },
                   { label: "Momentum", value: analysis.technical.momentum },
-                  { label: "Support", value: `₹${analysis.technical.support.toFixed(2)}` },
-                  { label: "Resistance", value: `₹${analysis.technical.resistance.toFixed(2)}` },
+                  { label: "Support", value: analysis.technical.support == null ? null : `₹${analysis.technical.support.toFixed(2)}` },
+                  { label: "Resistance", value: analysis.technical.resistance == null ? null : `₹${analysis.technical.resistance.toFixed(2)}` },
                   { label: "Technical Score", value: `${analysis.technical.score}%` },
                 ]}
               />
@@ -222,14 +283,14 @@ function AnalyzeStockPage() {
             <AnalysisCard title="Fundamental Analysis" icon={BarChart3}>
               <FieldGrid
                 items={[
-                  { label: "PE", value: `${analysis.fundamental.pe.toFixed(1)}` },
-                  { label: "PB", value: `${analysis.fundamental.pb.toFixed(2)}` },
-                  { label: "ROE", value: `${analysis.fundamental.roe}%` },
-                  { label: "ROCE", value: `${analysis.fundamental.roce}%` },
-                  { label: "Debt/Equity", value: `${analysis.fundamental.debtToEquity.toFixed(2)}` },
-                  { label: "Promoter Holding", value: `${analysis.fundamental.promoterHolding}%` },
-                  { label: "Revenue Growth", value: `${analysis.fundamental.revenueGrowth}%` },
-                  { label: "Profit Growth", value: `${analysis.fundamental.profitGrowth}%` },
+                  { label: "PE", value: analysis.fundamental.pe == null ? null : `${analysis.fundamental.pe.toFixed(1)}` },
+                  { label: "PB", value: analysis.fundamental.pb == null ? null : `${analysis.fundamental.pb.toFixed(2)}` },
+                  { label: "ROE", value: analysis.fundamental.roe == null ? null : `${analysis.fundamental.roe}%` },
+                  { label: "ROCE", value: analysis.fundamental.roce == null ? null : `${analysis.fundamental.roce}%` },
+                  { label: "Debt/Equity", value: analysis.fundamental.debtToEquity == null ? null : `${analysis.fundamental.debtToEquity.toFixed(2)}` },
+                  { label: "Promoter Holding", value: analysis.fundamental.promoterHolding == null ? null : `${analysis.fundamental.promoterHolding}%` },
+                  { label: "Revenue Growth", value: analysis.fundamental.revenueGrowth == null ? null : `${analysis.fundamental.revenueGrowth}%` },
+                  { label: "Profit Growth", value: analysis.fundamental.profitGrowth == null ? null : `${analysis.fundamental.profitGrowth}%` },
                   { label: "Fundamental Score", value: `${analysis.fundamental.score}%` },
                 ]}
               />

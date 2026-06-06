@@ -21,4 +21,5 @@ module.exports = {
     .map((s) => s.trim())
     .filter(Boolean),
   frontendSharedSecret: process.env.FRONTEND_SHARED_SECRET || "",
+  alphaVantageKey: process.env.ALPHA_VANTAGE_API_KEY || "",
 };

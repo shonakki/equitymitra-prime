@@ -1,5 +1,6 @@
 const express = require("express");
 const { fetchQuote, DEFAULT_WATCHLIST, TOKENS } = require("../angel/market");
+const { cleanSymbolKey, fetchStockDetails } = require("../angel/stockInfo");
 const smartstream = require("../angel/smartstream");
 const dashboard = require("../angel/dashboard");
 const nseApi = require("../angel/nseApi");
@@ -44,12 +45,24 @@ router.get("/watchlist", async (req, res, next) => {
 
 router.get("/stock/:symbol", async (req, res, next) => {
   try {
-    const sym = req.params.symbol.toUpperCase();
-    if (!TOKENS[sym]) {
-      return res.status(404).json({ ok: false, error: `Unknown symbol: ${sym}` });
+    const requested = req.params.symbol.toUpperCase();
+    const symbolKey = cleanSymbolKey(requested);
+    let stock = null;
+
+    if (TOKENS[symbolKey]) {
+      const out = await cached(`s:${symbolKey}`, () => fetchQuote([symbolKey]));
+      stock = out.data[0] || null;
     }
-    const out = await cached(`s:${sym}`, () => fetchQuote([sym]));
-    res.json({ ok: true, data: out.data[0] || null });
+
+    if (!stock) {
+      stock = await cached(`ext:${symbolKey}`, () => fetchStockDetails(symbolKey), 30_000);
+    }
+
+    if (!stock) {
+      return res.status(404).json({ ok: false, error: `Unknown symbol: ${symbolKey}` });
+    }
+
+    res.json({ ok: true, data: stock });
   } catch (e) { next(e); }
 });
 
