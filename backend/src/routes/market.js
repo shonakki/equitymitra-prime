@@ -47,19 +47,18 @@ router.get("/stock/:symbol", async (req, res, next) => {
   try {
     const requested = req.params.symbol.toUpperCase();
     const symbolKey = cleanSymbolKey(requested);
-    let stock = null;
 
-    if (TOKENS[symbolKey]) {
-      const out = await cached(`s:${symbolKey}`, () => fetchQuote([symbolKey]));
-      stock = out.data[0] || null;
+    // Only return data for symbols in Angel One tokens
+    if (!TOKENS[symbolKey]) {
+      return res.status(404).json({ ok: false, error: `Symbol not supported: ${symbolKey}. Use /api/symbols for available symbols.` });
     }
 
-    if (!stock) {
-      stock = await cached(`ext:${symbolKey}`, () => fetchStockDetails(symbolKey), 30_000);
-    }
+    // Fetch quote from Angel One API (with caching)
+    const out = await cached(`s:${symbolKey}`, () => fetchQuote([symbolKey]));
+    const stock = out.data[0] || null;
 
     if (!stock) {
-      return res.status(404).json({ ok: false, error: `Unknown symbol: ${symbolKey}` });
+      return res.status(500).json({ ok: false, error: `Failed to retrieve data from Angel One API for ${symbolKey}` });
     }
 
     res.json({ ok: true, data: stock });
