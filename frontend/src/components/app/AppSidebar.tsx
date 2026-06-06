@@ -1,13 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Eye, LineChart, TrendingUp,
-  Briefcase, History, GraduationCap, StickyNote, CreditCard, User, LogOut, X,
+  Briefcase, History, GraduationCap, StickyNote, CreditCard, User, Search, LogOut, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 const NAV = [
   { label: "Watchlist", to: "/app", icon: Eye },
   { label: "Markets", to: "/app/market", icon: LineChart },
+  { label: "Analyze Your Stock", to: "/app/analyze", icon: Search },
   { label: "Trade", to: "/app/trades", icon: TrendingUp },
   { label: "Portfolio Tracker", to: "/app/portfolio", icon: Briefcase },
   { label: "Past Performance", to: "/app/performance", icon: History },

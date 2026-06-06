@@ -19,6 +19,7 @@ import { Route as AppPortfolioRouteImport } from './routes/app.portfolio'
 import { Route as AppPerformanceRouteImport } from './routes/app.performance'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppMarketRouteImport } from './routes/app.market'
+import { Route as AppAnalyzeRouteImport } from './routes/app.analyze'
 import { Route as AppLearningRouteImport } from './routes/app.learning'
 import { Route as AppAccountRouteImport } from './routes/app.account'
 
@@ -72,6 +73,11 @@ const AppMarketRoute = AppMarketRouteImport.update({
   path: '/market',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAnalyzeRoute = AppAnalyzeRouteImport.update({
+  id: '/analyze',
+  path: '/analyze',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLearningRoute = AppLearningRouteImport.update({
   id: '/learning',
   path: '/learning',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/app/account': typeof AppAccountRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
+  '/app/analyze': typeof AppAnalyzeRoute
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/app/account': typeof AppAccountRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
+  '/app/analyze': typeof AppAnalyzeRoute
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/app/account': typeof AppAccountRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
+  '/app/analyze': typeof AppAnalyzeRoute
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/app/account'
     | '/app/learning'
     | '/app/market'
+    | '/app/analyze'
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/app/account'
     | '/app/learning'
     | '/app/market'
+    | '/app/analyze'
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/app/account'
     | '/app/learning'
     | '/app/market'
+    | '/app/analyze'
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
@@ -247,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMarketRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/analyze': {
+      id: '/app/analyze'
+      path: '/analyze'
+      fullPath: '/app/analyze'
+      preLoaderRoute: typeof AppAnalyzeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/learning': {
       id: '/app/learning'
       path: '/learning'
@@ -268,6 +287,7 @@ interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
   AppLearningRoute: typeof AppLearningRoute
   AppMarketRoute: typeof AppMarketRoute
+  AppAnalyzeRoute: typeof AppAnalyzeRoute
   AppNotesRoute: typeof AppNotesRoute
   AppPerformanceRoute: typeof AppPerformanceRoute
   AppPortfolioRoute: typeof AppPortfolioRoute
@@ -280,6 +300,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
   AppLearningRoute: AppLearningRoute,
   AppMarketRoute: AppMarketRoute,
+  AppAnalyzeRoute: AppAnalyzeRoute,
   AppNotesRoute: AppNotesRoute,
   AppPerformanceRoute: AppPerformanceRoute,
   AppPortfolioRoute: AppPortfolioRoute,
