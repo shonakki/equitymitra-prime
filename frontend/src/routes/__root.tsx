@@ -1,3 +1,4 @@
+import { useEffect, useState, type FormEvent } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -112,13 +113,85 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+const PASSWORD = "Akash123";
+const AUTH_KEY = "EquityMitraAccess";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [checkedStorage, setCheckedStorage] = useState(false);
+  const [passwordValue, setPasswordValue] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_KEY) : null;
+    if (stored === "unlocked") {
+      setIsUnlocked(true);
+    }
+    setCheckedStorage(true);
+  }, []);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (passwordValue === PASSWORD) {
+      window.localStorage.setItem(AUTH_KEY, "unlocked");
+      setIsUnlocked(true);
+      setError("");
+    } else {
+      setError("Incorrect password. Please try again.");
+    }
+  };
+
+  const isLocked = checkedStorage && !isUnlocked;
+
+  if (!checkedStorage) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-6">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-950/95 p-8 shadow-2xl backdrop-blur text-center text-white">
+              Checking access...
+            </div>
+          </div>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
+        {isLocked ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-6">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-950/95 p-8 shadow-2xl backdrop-blur">
+              <h1 className="text-2xl font-bold text-white">Enter Password</h1>
+              <p className="mt-3 text-sm text-white/60">
+                Please enter the site password to continue.
+              </p>
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                <label className="block text-sm font-medium text-white/80">
+                  Password
+                  <input
+                    type="password"
+                    value={passwordValue}
+                    onChange={(event) => setPasswordValue(event.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20"
+                    autoFocus
+                  />
+                </label>
+                {error && <p className="text-sm text-red-400">{error}</p>}
+                <button
+                  type="submit"
+                  className="w-full rounded-2xl bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[var(--gold)]/90"
+                >
+                  Unlock Site
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </AuthProvider>
     </QueryClientProvider>
   );
