@@ -87,6 +87,12 @@ export interface IPOCalendarItem {
   status: string;
 }
 
+export interface EarningsCalendarItem {
+  name: string;
+  date: string;
+  status: string;
+}
+
 export interface DashboardData {
   sectors: SectorPerformance[];
   gainers: GainerLoserRow[];
@@ -94,6 +100,17 @@ export interface DashboardData {
   breadth: MarketBreadth;
   sentiment: MarketSentiment;
   ipos: IPOCalendarItem[] | null;
+  updatedAt: string;
+}
+
+export interface USADashboardData {
+  indices: Quote[];
+  sectors: SectorPerformance[];
+  gainers: GainerLoserRow[];
+  losers: GainerLoserRow[];
+  breadth: MarketBreadth & { total: number };
+  sentiment: MarketSentiment;
+  earnings: EarningsCalendarItem[];
   updatedAt: string;
 }
 
@@ -108,6 +125,7 @@ export const marketApi = {
     ),
   stock: (symbol: string) => apiFetch<Quote>(`/api/stock/${symbol.toUpperCase()}`),
   dashboard: () => apiFetch<DashboardData>("/api/dashboard"),
+  dashboardUSA: () => apiFetch<USADashboardData>("/api/dashboard/usa"),
 };
 
 /**
