@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Briefcase, LayoutGrid, Rows3, TrendingUp, TrendingDown, Plus } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { usePlan } from "@/lib/auth";
+import { canAccessPortfolio } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/app/UpgradeGate";
 
 export const Route = createFileRoute("/app/portfolio")({
   component: PortfolioPage,
@@ -55,9 +58,30 @@ function ReturnCell({ entry, current }: { entry: number; current: number }) {
 }
 
 function PortfolioPage() {
+  const plan = usePlan();
+
+  // Starter plan cannot access Portfolio Tracker
+  if (!canAccessPortfolio(plan)) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        <PageHeader
+          eyebrow="Portfolio"
+          title="Portfolio Tracker"
+          description="Track your active holdings and monitor real-time P&L."
+        />
+        <UpgradeGate
+          requiredPlan="Premium"
+          feature="Portfolio Tracker"
+          description="Track all your active holdings with live P&L, risk management tools and position sizing — available from Premium plan."
+        />
+      </div>
+    );
+  }
+
   const [view, setView] = useState<"card" | "table">("card");
 
   const totalInv = HOLDINGS.reduce((a, h) => a + h.entry, 0);
+
   const totalCur = HOLDINGS.reduce((a, h) => a + h.current, 0);
   const overall = pct(totalInv, totalCur);
   const winners = HOLDINGS.filter((h) => h.current >= h.entry).length;

@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Play, Clock, Lock } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { MiniChart } from "@/components/site/MiniChart";
+import { usePlan } from "@/lib/auth";
+import { canAccessVideoAcademy, getVideoLimit } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/app/UpgradeGate";
 
 export const Route = createFileRoute("/app/learning")({
   component: LearningPage,
@@ -87,6 +90,29 @@ function Thumb({ pattern, trend, title, level }: { pattern: Pattern; trend: "up"
 }
 
 function LearningPage() {
+  const plan = usePlan();
+
+  // Starter: no access
+  if (!canAccessVideoAcademy(plan)) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        <PageHeader
+          eyebrow="Learning"
+          title="Video Academy"
+          description="Structured courses from absolute basics to ATE price-volume framework."
+        />
+        <UpgradeGate
+          requiredPlan="Premium"
+          feature="Video Academy"
+          description="Unlock structured video courses from beginner to advanced ATE strategies. Available from Premium plan."
+        />
+      </div>
+    );
+  }
+
+  const limit = getVideoLimit(plan); // Infinity for PremiumYearly/Founder, 5 for Premium
+  const isLimited = limit !== Infinity;
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
       <PageHeader
@@ -95,32 +121,64 @@ function LearningPage() {
         description="Structured courses from absolute basics to ATE price-volume framework. New lessons added every week."
       />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {COURSES.map((c) => (
-          <article
-            key={c.title + c.level + c.duration}
-            className="group rounded-xl border border-white/10 bg-card/60 p-3 hover:border-[var(--gold)]/30 hover:-translate-y-0.5 transition"
+      {isLimited && (
+        <div className="mb-5 flex items-center justify-between rounded-xl border border-[var(--gold)]/20 bg-[var(--gold)]/5 px-4 py-3">
+          <p className="text-sm text-white/70">
+            Your plan includes access to the first <span className="font-bold text-white">{limit}</span> courses.
+            Upgrade to Premium Yearly for the full library.
+          </p>
+          <a
+            href="/app/subscription"
+            className="shrink-0 ml-4 inline-flex items-center gap-1 rounded-md gold-gradient text-black text-[11px] font-bold px-3 py-1.5 hover:opacity-90 transition"
           >
-            <Thumb pattern={c.pattern} trend={c.trend} title={c.title} level={c.level} />
-            <div className="px-1 pt-3 pb-1">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-bold text-white">{c.title}</h3>
-                {c.premium && (
-                  <span className="inline-flex items-center gap-1 rounded-full gold-gradient text-black text-[10px] font-bold px-2 py-0.5">
-                    <Lock className="h-3 w-3" /> Prime
-                  </span>
+            Upgrade
+          </a>
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {COURSES.map((c, index) => {
+          const locked = isLimited && index >= limit;
+          return (
+            <article
+              key={c.title + c.level + c.duration}
+              className={`group relative rounded-xl border bg-card/60 p-3 transition ${
+                locked
+                  ? "border-white/5 opacity-60 cursor-not-allowed"
+                  : "border-white/10 hover:border-[var(--gold)]/30 hover:-translate-y-0.5"
+              }`}
+            >
+              <Thumb pattern={c.pattern} trend={c.trend} title={c.title} level={c.level} />
+              {locked && (
+                <div className="absolute inset-0 rounded-xl bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10">
+                  <div className="h-10 w-10 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 grid place-items-center">
+                    <Lock className="h-4 w-4 text-[var(--gold)]" />
+                  </div>
+                  <p className="text-xs font-semibold text-white/70">Premium Yearly</p>
+                </div>
+              )}
+              <div className="px-1 pt-3 pb-1">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-bold text-white">{c.title}</h3>
+                  {c.premium && !locked && (
+                    <span className="inline-flex items-center gap-1 rounded-full gold-gradient text-black text-[10px] font-bold px-2 py-0.5">
+                      <Lock className="h-3 w-3" /> Prime
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
+                  <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
+                  {c.lessons > 0 && <span>{c.lessons} lessons</span>}
+                </div>
+                {!locked && (
+                  <button className="mt-3 w-full rounded-md gold-gradient text-black text-xs font-semibold py-2 hover:opacity-90 transition">
+                    Watch Now
+                  </button>
                 )}
               </div>
-              <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
-                <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
-                {c.lessons > 0 && <span>{c.lessons} lessons</span>}
-              </div>
-              <button className="mt-3 w-full rounded-md gold-gradient text-black text-xs font-semibold py-2 hover:opacity-90 transition">
-                Watch Now
-              </button>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
 
       <p className="mt-8 text-[11px] text-white/35">

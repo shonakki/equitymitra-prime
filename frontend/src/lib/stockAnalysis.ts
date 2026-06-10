@@ -128,7 +128,7 @@ function buildOperatorRisk(
   const volumeQuality = volume == null ? "Medium" : volume > 10_000_000 ? "High" : volume > 3_000_000 ? "Medium" : "Low";
   const deliveryStrength = deliveryPercent == null ? "Stable" : deliveryPercent >= 40 ? "Strong" : deliveryPercent >= 25 ? "Stable" : "Weak";
   const operatorActivity = percentChange == null ? "Moderate" : Math.abs(percentChange) >= 4 ? "Active" : "Moderate";
-  const riskScore = (liquidityRisk === "High" ? 2 : liquidityRisk === "Moderate" ? 1 : 0) + (operatorActivity === "Active" ? 2 : 0);
+  const riskScore = ((liquidityRisk as string) === "High" ? 2 : liquidityRisk === "Moderate" ? 1 : 0) + (operatorActivity === "Active" ? 2 : 0);
   const riskLevel = riskScore >= 3 ? "High" : riskScore === 2 ? "Moderate" : "Low";
 
   return {

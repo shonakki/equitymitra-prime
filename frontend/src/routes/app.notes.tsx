@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { FileText, Download, Upload, FolderOpen, Search, Bookmark, BookmarkCheck, ArrowDownAZ, Clock, TrendingUp } from "lucide-react";
+import { FileText, Download, Upload, FolderOpen, Search, Bookmark, BookmarkCheck, ArrowDownAZ, Clock, TrendingUp, Lock } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { usePlan } from "@/lib/auth";
+import { canAccessPdfLibrary, canDownloadPdf, getPdfLimit } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/app/UpgradeGate";
 
 export const Route = createFileRoute("/app/notes")({
   component: NotesPage,
@@ -39,6 +42,30 @@ type Sort = "Recent" | "Downloads" | "A–Z";
 const SORTS: Sort[] = ["Recent", "Downloads", "A–Z"];
 
 function NotesPage() {
+  const plan = usePlan();
+
+  // Starter: full gate
+  if (!canAccessPdfLibrary(plan)) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        <PageHeader
+          eyebrow="PDF Library"
+          title="Research PDFs"
+          description="Complete library of trading guides, strategy PDFs and research notes."
+        />
+        <UpgradeGate
+          requiredPlan="Premium"
+          feature="PDF Library"
+          description="Access our complete library of trading guides, strategy PDFs and research notes. Premium plan gives view access to first 10; Premium Yearly unlocks full downloads."
+        />
+      </div>
+    );
+  }
+
+  const pdfLimit = getPdfLimit(plan);        // 10 for Premium, Infinity for PremiumYearly/Founder
+  const canDownload = canDownloadPdf(plan);  // only PremiumYearly+
+  const isLimited = pdfLimit !== Infinity;
+
   const [active, setActive] = useState<typeof CATS[number]>("All");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("Recent");
@@ -89,6 +116,21 @@ function NotesPage() {
         description="Search, filter and bookmark every research PDF, playbook and weekly note."
       />
 
+      {/* Plan info banner */}
+      {isLimited && (
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-[var(--gold)]/20 bg-[var(--gold)]/5 px-4 py-3">
+          <p className="text-sm text-white/70">
+            <span className="font-bold text-white">View-only:</span> Your plan includes the first{" "}
+            <span className="font-bold text-white">{pdfLimit}</span> PDFs. Upgrade to Premium Yearly for full library + downloads.
+          </p>
+          <a
+            href="/app/subscription"
+            className="shrink-0 ml-4 inline-flex items-center gap-1 rounded-md gold-gradient text-black text-[11px] font-bold px-3 py-1.5 hover:opacity-90 transition"
+          >
+            Upgrade
+          </a>
+        </div>
+      )}
       {/* Upload area (admin placeholder) */}
       <div
         onDragOver={(e) => e.preventDefault()}
@@ -192,13 +234,32 @@ function NotesPage() {
             No notes match your filters.
           </div>
         ) : (
-          visible.map((n) => {
+          visible.map((n, index) => {
             const fav = favs.has(n.id);
+            const locked = isLimited && index >= pdfLimit;
             return (
               <article
                 key={n.id}
-                className="rounded-xl border border-white/10 bg-card/60 p-4 hover:border-[var(--gold)]/30 transition flex flex-col"
+                className={`relative rounded-xl border bg-card/60 p-4 flex flex-col transition ${
+                  locked
+                    ? "border-white/5 opacity-60"
+                    : "border-white/10 hover:border-[var(--gold)]/30"
+                }`}
               >
+                {locked && (
+                  <div className="absolute inset-0 rounded-xl bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10">
+                    <div className="h-10 w-10 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 grid place-items-center">
+                      <Lock className="h-4 w-4 text-[var(--gold)]" />
+                    </div>
+                    <p className="text-xs font-semibold text-white/70">Premium Yearly</p>
+                    <a
+                      href="/app/subscription"
+                      className="text-[10px] text-[var(--gold)] hover:underline"
+                    >
+                      Upgrade to unlock
+                    </a>
+                  </div>
+                )}
                 <div className="flex items-start justify-between">
                   <div className="h-12 w-12 rounded-lg bg-red-500/10 border border-red-500/30 grid place-items-center text-red-400">
                     <FileText className="h-5 w-5" />
@@ -214,9 +275,17 @@ function NotesPage() {
                 <h3 className="mt-3 text-sm font-semibold text-white">{n.title}</h3>
                 <p className="mt-1 text-[11px] text-white/45">{n.cat} · {n.pages} pages · {n.size}</p>
                 <p className="text-[10px] text-white/35 mt-1">{n.downloads.toLocaleString()} downloads</p>
-                <button className="mt-4 inline-flex items-center justify-center gap-2 rounded-md border border-white/15 text-white text-xs font-semibold py-2 hover:bg-white/5 transition">
-                  <Download className="h-3.5 w-3.5" /> Download PDF
-                </button>
+                {!locked && (
+                  canDownload ? (
+                    <button className="mt-4 inline-flex items-center justify-center gap-2 rounded-md border border-white/15 text-white text-xs font-semibold py-2 hover:bg-white/5 transition">
+                      <Download className="h-3.5 w-3.5" /> Download PDF
+                    </button>
+                  ) : (
+                    <button className="mt-4 inline-flex items-center justify-center gap-2 rounded-md border border-white/10 text-white/50 text-xs font-semibold py-2 cursor-default" disabled>
+                      <Lock className="h-3.5 w-3.5" /> View Only
+                    </button>
+                  )
+                )}
               </article>
             );
           })

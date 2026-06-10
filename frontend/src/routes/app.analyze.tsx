@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { fetchStockAnalysis, type StockAnalysisData } from "@/lib/stockAnalysis";
+import { usePlan, useAnalyzeUsage } from "@/lib/auth";
+import { canAccessAnalyze } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/app/UpgradeGate";
 
 export const Route = createFileRoute("/app/analyze")({
   component: AnalyzeStockPage,
@@ -124,11 +127,31 @@ function formatLargeCount(value: number | null | undefined) {
 }
 
 function AnalyzeStockPage() {
+  const plan = usePlan();
+  const { used, limit, remaining, canAnalyze, recordUsage } = useAnalyzeUsage();
   const [query, setQuery] = useState("");
   const [analysis, setAnalysis] = useState<StockAnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  // Starter plan: no access at all
+  if (!canAccessAnalyze(plan)) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        <PageHeader
+          eyebrow="Premium Research"
+          title="Analyze Your Stock"
+          description="Search any NSE stock symbol and generate a complete institutional-grade equity research dashboard."
+        />
+        <UpgradeGate
+          requiredPlan="Premium"
+          feature="Analyze Your Stock"
+          description="Get institutional-grade research for any NSE stock — technicals, fundamentals, operator risk and AI verdict. Available from Premium plan."
+        />
+      </div>
+    );
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -139,6 +162,10 @@ function AnalyzeStockPage() {
       setAnalysis(null);
       return;
     }
+    if (!canAnalyze) {
+      setError("You've used all your analyses for this month. Upgrade for more.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -147,6 +174,7 @@ function AnalyzeStockPage() {
     try {
       const data = await fetchStockAnalysis(symbol);
       setAnalysis(data);
+      recordUsage();
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
       setError(message || "Unable to fetch data for this symbol.");
@@ -155,13 +183,51 @@ function AnalyzeStockPage() {
     }
   };
 
+  const isUnlimited = limit === Infinity;
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
       <PageHeader
         eyebrow="Premium Research"
         title="Analyze Your Stock"
-        description="Search any NSE stock symbol and generate a complete institutional-grade equity research dashboard." 
+        description="Search any NSE stock symbol and generate a complete institutional-grade equity research dashboard."
       />
+
+      {/* Usage counter banner */}
+      {!isUnlimited && (
+        <div
+          className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+            remaining === 0
+              ? "border-red-500/30 bg-red-500/5"
+              : remaining <= 2
+              ? "border-amber-500/30 bg-amber-500/5"
+              : "border-[var(--gold)]/20 bg-[var(--gold)]/5"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Zap className={`h-4 w-4 shrink-0 ${remaining === 0 ? "text-red-400" : remaining <= 2 ? "text-amber-400" : "text-[var(--gold)]"}`} />
+            <p className="text-sm font-medium text-white">
+              {remaining === 0
+                ? "Monthly limit reached"
+                : `${remaining} ${remaining === 1 ? "analysis" : "analyses"} remaining this month`}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-white/45">
+              {used} / {limit} used
+            </span>
+            {remaining <= 3 && (
+              <a
+                href="/app/subscription"
+                className="inline-flex items-center gap-1 rounded-md gold-gradient text-black text-[11px] font-bold px-3 py-1.5 hover:opacity-90 transition"
+              >
+                Upgrade
+                <ArrowUpRight className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-[1.4fr_0.9fr]">
         <div className="rounded-3xl border border-white/10 bg-card/60 p-6">

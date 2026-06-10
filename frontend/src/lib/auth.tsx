@@ -4,13 +4,16 @@
  * Real OTP auth plugs in by replacing
  * `login` / `logout`. The `/app` guard keeps working.
  */
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import type { PlanId } from "./subscription";
+import { getAnalyzeUsed, recordAnalyzeUsage, getAnalysisLimit } from "./subscription";
 
-type User = {
+export type User = {
   phone: string;
   name?: string;
   email?: string;
-  plan: "Basic" | "Prime" | "Free";
+  /** Canonical plan ID */
+  plan: PlanId;
   accountId: string;
   memberSince: string; // ISO date
   nextRenewal: string; // ISO date
@@ -25,6 +28,8 @@ type Ctx = {
   isAuthed: boolean;
   login: (phone: string) => void;
   logout: () => void;
+  /** Dev-only: switch plan without re-logging in */
+  setPlan: (plan: PlanId) => void;
 };
 
 const AuthContext = createContext<Ctx | null>(null);
@@ -37,7 +42,8 @@ function buildUser(phone: string): User {
   return {
     phone,
     name: "Member",
-    plan: "Prime",
+    // Default plan for new logins — change here for testing
+    plan: "Starter",
     accountId: `EM-${tail}-${now.getFullYear()}`,
     memberSince: now.toISOString(),
     nextRenewal: renewal.toISOString(),
@@ -48,6 +54,14 @@ function buildUser(phone: string): User {
   };
 }
 
+/** Normalize legacy plan names → PlanId */
+function normalizePlan(raw: string | undefined): PlanId {
+  if (raw === "Prime" || raw === "Premium") return "Premium";
+  if (raw === "PremiumYearly") return "PremiumYearly";
+  if (raw === "Founder") return "Founder";
+  return "Starter";
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
@@ -56,8 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = typeof window !== "undefined" ? localStorage.getItem(KEY) : null;
       if (raw) {
         const parsed = JSON.parse(raw);
-        // Backfill missing fields for existing localStorage users
-        const merged: User = { ...buildUser(parsed.phone ?? ""), ...parsed };
+        const base = buildUser(parsed.phone ?? "");
+        const merged: User = {
+          ...base,
+          ...parsed,
+          plan: normalizePlan(parsed.plan),
+        };
         setUser(merged);
       }
     } catch {
@@ -70,13 +88,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(KEY, JSON.stringify(u));
     setUser(u);
   };
+
   const logout = () => {
     localStorage.removeItem(KEY);
     setUser(null);
   };
 
+  const setPlan = useCallback((plan: PlanId) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, plan };
+      localStorage.setItem(KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isAuthed: !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthed: !!user, login, logout, setPlan }}>
       {children}
     </AuthContext.Provider>
   );
@@ -86,4 +114,29 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
+}
+
+/** Returns current plan, defaulting to Starter when unauthenticated */
+export function usePlan(): PlanId {
+  const { user } = useAuth();
+  return user?.plan ?? "Starter";
+}
+
+/** Analyse usage for the current user/month */
+export function useAnalyzeUsage() {
+  const { user } = useAuth();
+  const plan = usePlan();
+  const userId = user?.accountId ?? "guest";
+  const limit = getAnalysisLimit(plan);
+  const [used, setUsed] = useState(() => getAnalyzeUsed(userId));
+
+  const remaining = limit === Infinity ? Infinity : Math.max(0, limit - used);
+  const canAnalyze = limit > 0 && (limit === Infinity || used < limit);
+
+  const recordUsage = useCallback(() => {
+    recordAnalyzeUsage(userId);
+    setUsed((prev) => prev + 1);
+  }, [userId]);
+
+  return { used, limit, remaining, canAnalyze, recordUsage };
 }

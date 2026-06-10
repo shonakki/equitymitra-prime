@@ -2,14 +2,28 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { TradeCard, type Trade } from "@/components/app/TradeCard";
-import { Plus } from "lucide-react";
+import { Plus, Lock, Crown } from "lucide-react";
+import { usePlan } from "@/lib/auth";
+import { getAllowedTradeCategories, canAccessWealthCreator } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/app/UpgradeGate";
+import type { PlanId } from "@/lib/subscription";
 
 export const Route = createFileRoute("/app/trades")({
   component: TradesPage,
 });
 
-const CATS = ["Positional", "Swing", "Mid Term", "Long Term", "Wealth Creator", "F&O"] as const;
+const CATS = ["Positional", "Swing", "Mid Term", "Long Term", "F&O", "Wealth Creator"] as const;
 type Cat = typeof CATS[number];
+
+/** Plan required to unlock each category */
+const CAT_PLAN: Record<Cat, PlanId> = {
+  "Positional":     "Starter",
+  "Swing":          "Starter",
+  "Mid Term":       "Premium",
+  "Long Term":      "Premium",
+  "F&O":            "Premium",
+  "Wealth Creator": "Founder",
+};
 
 const ALL: Trade[] = [
   {
@@ -68,28 +82,63 @@ const ALL: Trade[] = [
   },
 ];
 
-function CategoryTabs({ active, onChange }: { active: Cat; onChange: (c: Cat) => void }) {
+function CategoryTabs({
+  active,
+  onChange,
+  allowed,
+}: {
+  active: Cat;
+  onChange: (c: Cat) => void;
+  allowed: Set<Cat>;
+}) {
   return (
     <div className="rounded-xl border border-white/10 bg-card/60 p-2 flex items-center gap-1 overflow-x-auto">
-      {CATS.map((c) => (
-        <button
-          key={c}
-          onClick={() => onChange(c)}
-          className={`shrink-0 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
-            active === c
-              ? "gold-gradient text-black"
-              : "text-white/70 hover:text-white hover:bg-white/5"
-          }`}
-        >
-          {c}
-        </button>
-      ))}
+      {CATS.map((c) => {
+        const isAllowed = allowed.has(c);
+        const isActive = active === c;
+        const isFounderOnly = CAT_PLAN[c] === "Founder";
+        return (
+          <button
+            key={c}
+            onClick={() => onChange(c)}
+            className={`shrink-0 rounded-md px-3.5 py-1.5 text-xs font-semibold transition flex items-center gap-1.5 ${
+              isActive
+                ? "gold-gradient text-black"
+                : isAllowed
+                ? "text-white/70 hover:text-white hover:bg-white/5"
+                : "text-white/35 hover:bg-white/5 cursor-pointer"
+            }`}
+          >
+            {!isAllowed && (
+              isFounderOnly
+                ? <Crown className="h-3 w-3 shrink-0 text-amber-400" />
+                : <Lock className="h-3 w-3 shrink-0" />
+            )}
+            {c}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 function TradesPage() {
-  const [active, setActive] = useState<Cat>("Positional");
+  const plan = usePlan();
+  const allowed = getAllowedTradeCategories(plan);
+  const isWealthCreatorAllowed = canAccessWealthCreator(plan);
+
+  // Default to first accessible category
+  const defaultCat = allowed.has("Positional") ? "Positional" : CATS[0];
+  const [active, setActive] = useState<Cat>(defaultCat);
+
+  const handleTabChange = (c: Cat) => {
+    setActive(c);
+  };
+
+  // Check if current tab is locked
+  const isCurrentLocked = !allowed.has(active);
+  const requiredPlan = CAT_PLAN[active];
+
   const visible = ALL.filter((t) => t.category === active);
 
   return (
@@ -105,17 +154,32 @@ function TradesPage() {
         }
       />
 
-      <CategoryTabs active={active} onChange={setActive} />
+      <CategoryTabs active={active} onChange={handleTabChange} allowed={allowed} />
 
-      <div className="mt-5 grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {visible.length === 0 ? (
-          <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-white/45">
-            No {active.toLowerCase()} setups posted yet. Check back soon.
-          </div>
-        ) : (
-          visible.map((t, i) => <TradeCard key={t.s + t.category} t={t} index={i} />)
-        )}
-      </div>
+      {isCurrentLocked ? (
+        <div className="mt-8">
+          <UpgradeGate
+            requiredPlan={requiredPlan}
+            feature={`${active} Trades`}
+            description={
+              active === "Wealth Creator"
+                ? "Wealth Creator is an exclusive Founder feature — long-duration, high-conviction ideas with 70%+ return potential."
+                : `${active} trade ideas are available from the ${requiredPlan} plan and above.`
+            }
+          />
+        </div>
+      ) : (
+        <div className="mt-5 grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {visible.length === 0 ? (
+            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-white/45">
+              No {active.toLowerCase()} setups posted yet. Check back soon.
+            </div>
+          ) : (
+            visible.map((t, i) => <TradeCard key={t.s + t.category} t={t} index={i} />)
+          )}
+        </div>
+      )}
     </div>
   );
 }
+

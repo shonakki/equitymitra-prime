@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { History, TrendingUp, TrendingDown, CheckCircle2, Circle } from "lucide-react";
+import { History, TrendingUp, TrendingDown, CheckCircle2, Circle, Lock } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { usePlan } from "@/lib/auth";
+import { canAccessWealthCreator } from "@/lib/subscription";
 
 export const Route = createFileRoute("/app/performance")({
   component: PerformancePage,
@@ -44,6 +46,8 @@ function pct(entry: number, current: number) {
 }
 
 function PerformancePage() {
+  const plan = usePlan();
+  const wealthLocked = !canAccessWealthCreator(plan);
   const [cat, setCat] = useState<Cat>("All");
   const visible = ROWS.filter((r) => cat === "All" || r.cat === cat);
 
@@ -59,6 +63,8 @@ function PerformancePage() {
       active,
     };
   }, []);
+
+  const showWealthGate = cat === "Wealth Creator" && wealthLocked;
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
@@ -76,68 +82,90 @@ function PerformancePage() {
       </div>
 
       <div className="rounded-xl border border-white/10 bg-card/60 p-2 flex items-center gap-1 overflow-x-auto mb-4">
-        {CATS.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCat(c)}
-            className={`shrink-0 rounded-md px-3 py-1.5 text-[11px] font-semibold transition ${
-              cat === c ? "gold-gradient text-black" : "text-white/65 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
+        {CATS.map((c) => {
+          const isWC = c === "Wealth Creator";
+          return (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`shrink-0 rounded-md px-3 py-1.5 text-[11px] font-semibold transition inline-flex items-center gap-1 ${
+                cat === c ? "gold-gradient text-black" : "text-white/65 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {isWC && wealthLocked && <Lock className="h-3 w-3" />}
+              {c}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-card/60 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-white/5 text-[10px] uppercase tracking-wider text-white/50">
-              <tr>
-                <th className="text-left px-4 py-3 flex items-center gap-1.5"><History className="h-3 w-3" /> Stock</th>
-                <th className="text-right px-4 py-3">Entry</th>
-                <th className="text-right px-4 py-3">Current</th>
-                <th className="text-right px-4 py-3">Return</th>
-                <th className="text-center px-4 py-3">Status</th>
-                <th className="text-right px-4 py-3">Days</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((r) => {
-                const ret = pct(r.entry, r.current);
-                const up = ret >= 0;
-                return (
-                  <tr key={r.s + r.cat + r.days} className="border-t border-white/5 hover:bg-white/[0.02]">
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-white">{r.s}</div>
-                      <div className="text-[10px] text-white/40">{r.cat}</div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-white/85">₹{r.entry.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right font-mono text-white/85">₹{r.current.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`inline-flex items-center gap-1 text-sm font-bold ${up ? "text-emerald-400" : "text-red-400"}`}>
-                        {up ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                        {up ? "+" : ""}{ret.toFixed(2)}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {r.status === "Closed" ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-white/70"><CheckCircle2 className="h-3 w-3 text-emerald-400" /> Closed</span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-[var(--gold)]"><Circle className="h-3 w-3 animate-pulse" /> Active</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right text-white/65">{r.days}</td>
-                  </tr>
-                );
-              })}
-              {visible.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-white/45">No ideas in this category yet.</td></tr>
-              )}
-            </tbody>
-          </table>
+      {showWealthGate ? (
+        <div className="rounded-xl border border-[var(--gold)]/20 bg-[var(--gold)]/5 p-10 text-center">
+          <div className="mx-auto mb-4 h-14 w-14 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 grid place-items-center">
+            <Lock className="h-6 w-6 text-[var(--gold)]" />
+          </div>
+          <h3 className="text-base font-bold text-white mb-1">Wealth Creator — Founder Only</h3>
+          <p className="text-sm text-white/55 max-w-xs mx-auto mb-5">
+            Long-horizon multibagger ideas reserved exclusively for Founder Lifetime members.
+          </p>
+          <a
+            href="/app/subscription"
+            className="inline-flex items-center gap-2 rounded-lg gold-gradient text-black text-sm font-bold px-5 py-2.5 hover:opacity-90 transition"
+          >
+            Become a Founder Member
+          </a>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-white/10 bg-card/60 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-[10px] uppercase tracking-wider text-white/50">
+                <tr>
+                  <th className="text-left px-4 py-3 flex items-center gap-1.5"><History className="h-3 w-3" /> Stock</th>
+                  <th className="text-right px-4 py-3">Entry</th>
+                  <th className="text-right px-4 py-3">Current</th>
+                  <th className="text-right px-4 py-3">Return</th>
+                  <th className="text-center px-4 py-3">Status</th>
+                  <th className="text-right px-4 py-3">Days</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((r) => {
+                  const ret = pct(r.entry, r.current);
+                  const up = ret >= 0;
+                  return (
+                    <tr key={r.s + r.cat + r.days} className="border-t border-white/5 hover:bg-white/[0.02]">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-white">{r.s}</div>
+                        <div className="text-[10px] text-white/40">{r.cat}</div>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-white/85">₹{r.entry.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-mono text-white/85">₹{r.current.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`inline-flex items-center gap-1 text-sm font-bold ${up ? "text-emerald-400" : "text-red-400"}`}>
+                          {up ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                          {up ? "+" : ""}{ret.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {r.status === "Closed" ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-white/70"><CheckCircle2 className="h-3 w-3 text-emerald-400" /> Closed</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-[var(--gold)]"><Circle className="h-3 w-3 animate-pulse" /> Active</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-white/65">{r.days}</td>
+                    </tr>
+                  );
+                })}
+                {visible.length === 0 && (
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-white/45">No ideas in this category yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <p className="mt-4 text-[11px] text-white/35">
         Past performance is educational record-keeping and does not guarantee future results.
