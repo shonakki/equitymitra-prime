@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, FileText, CreditCard, Calendar, Shield } from "lucide-react";
+import { Check, FileText, CreditCard, Calendar } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { useAuth, usePlan } from "@/lib/auth";
-import { getPlanMeta, PLANS, getMonthsSinceJoined, type PlanId } from "@/lib/subscription";
+import { getPlanMeta, PLANS, type PlanId } from "@/lib/subscription";
 
 export const Route = createFileRoute("/app/subscription")({
   component: SubscriptionPage,
@@ -10,87 +10,62 @@ export const Route = createFileRoute("/app/subscription")({
 
 const PLAN_BENEFITS: Record<PlanId, string[]> = {
   Starter: [
-    "Daily Research Ideas",
-    "Watchlist Access",
-    "Markets Dashboard",
-    "Positional & Swing Trades",
+    "Daily Nifty & Bank Nifty Levels",
+    "High Accuracy Support & Resistance Levels",
+    "2 Swing/Mid-Term Ideas Weekly",
+    "1 Long-Term Pick Monthly",
+    "Regular Trade Setups",
     "Basic Telegram Access",
   ],
   Premium: [
     "Everything in Starter",
-    "Mid Term, Long Term, & F&O Trades",
-    "Portfolio Tracker",
-    "Monthly Releasing Video Academy",
-    "Monthly Releasing PDF Library (View Only)",
-    "Analyze Your Stock: 10/month",
-    "Premium Telegram Access",
+    "Advanced Learning Videos",
+    "2 New Videos Released Monthly",
+    "Premium Research Ideas",
+    "IPO Setups",
+    "Positional Setups",
+    "Portfolio Hedging",
+    "Priority Support",
+    "2 New PDFs Monthly (View Only)",
   ],
   PremiumYearly: [
     "Everything in Premium",
-    "Immediate Access to all released Videos",
-    "Immediate Access to all released PDFs",
-    "PDF Downloads Enabled",
-    "Analyze Your Stock: 25/month",
-    "Premium Reports",
+    "Full Video Library",
+    "Full PDF Library",
+    "Wealth Creator Reports",
+    "6–7 Trade Setups For Various Market Conditions",
+    "Regular Income Setups",
+    "Exclusive Content",
+    "Priority Support",
   ],
   BeginnerProgram: [
-    "Full Curriculum of Beginner Academy",
-    "Watch all Beginner lessons",
-    "Study at your own pace",
-    "Lifetime Access to Beginner Academy",
+    "Complete Beginner Course",
+    "10+ Modules",
+    "30+ Videos",
+    "Beginner To Confident Investor Journey",
+    "Investor Awareness Program",
+    "Practical Learning",
   ],
   Founder: [
-    "Everything in Premium Yearly",
-    "Exclusive Founder Academy",
-    "Wealth Creator reports & trades",
-    "All stock picks",
-    "Live sessions",
+    "All Current Courses",
+    "All Future Courses",
+    "All Present PDFs",
+    "All Future PDFs",
+    "Live Sessions",
+    "Founder Badge",
+    "Priority Support",
+    "Unlimited Wealth Creator Reports",
+    "All Research Categories",
     "Lifetime Access",
-  ],
-};
-
-const UPGRADE_FEATURES: Record<PlanId, string[]> = {
-  Starter: [
-    "Daily Research Ideas",
-    "Watchlist Access",
-    "Markets Dashboard",
-    "Positional & Swing Trades",
-  ],
-  Premium: [
-    "Everything in Starter",
-    "Technicals, Fundamentals, & F&O",
-    "Portfolio Tracker",
-    "Monthly release video & PDF access",
-  ],
-  PremiumYearly: [
-    "Everything in Premium",
-    "Immediate access to all released content",
-    "PDF downloads enabled",
-    "Save ₹2,189 vs. Monthly",
-  ],
-  BeginnerProgram: [
-    "Full Beginner Academy course",
-    "Investor awareness lessons",
-    "Study at your own pace",
-    "Lifetime lesson access",
-  ],
-  Founder: [
-    "Lifetime Premium Access",
-    "Exclusive Founder Academy",
-    "Wealth Creator reports & trades",
-    "All stock picks & private AMA archive",
   ],
 };
 
 function SubscriptionPage() {
   const currentPlan = usePlan();
-  const { user, setPlan, setMemberSince } = useAuth();
+  const { user, setPlan } = useAuth();
   
   const activeMeta = getPlanMeta(currentPlan);
   const activeBenefits = PLAN_BENEFITS[currentPlan];
-
-  // Calculate simulated months
-  const months = getMonthsSinceJoined(user?.memberSince);
 
   // Exclude current plan from upgrades
   const upgradeOptions = PLANS.filter((p) => p.id !== currentPlan);
@@ -99,59 +74,22 @@ function SubscriptionPage() {
     setPlan(id);
   };
 
-  const handleSimulateMonths = (m: number) => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - m);
-    setMemberSince(d.toISOString());
-  };
-
   const paymentHistory = [
-    { id: 1, plan: `${activeMeta.label} Plan`, date: new Date(user?.memberSince ?? Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), amount: activeMeta.price, status: "Successful" },
+    { 
+      id: 1, 
+      plan: `${activeMeta.label} Plan`, 
+      date: new Date(user?.memberSince ?? Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), 
+      amount: activeMeta.price, 
+      status: "Successful" 
+    },
   ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 fade-up">
       <PageHeader
         title="My Subscription"
-        description="Manage your active plans, simulate membership periods, and explore upgrades."
+        description="Manage your active plans and explore upgrade paths."
       />
-
-      {/* Developer Testing Console */}
-      <div className="mb-6 p-4 rounded-xl border border-dashed border-purple-500/40 bg-purple-500/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-purple-400 shrink-0 animate-pulse" />
-          <div>
-            <p className="text-xs font-bold text-white uppercase tracking-wider">Developer Testing Controls</p>
-            <p className="text-[10px] text-white/55">Simulate membership duration to test video/PDF release schedules. Current: {months} {months === 1 ? "month" : "months"}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => handleSimulateMonths(0)}
-            className={`px-3 py-1 rounded text-[10px] font-bold border transition ${months === 0 ? "bg-purple-600 text-white border-transparent" : "border-white/10 text-white/60 hover:text-white"}`}
-          >
-            Just Joined (Month 0)
-          </button>
-          <button
-            onClick={() => handleSimulateMonths(1)}
-            className={`px-3 py-1 rounded text-[10px] font-bold border transition ${months === 1 ? "bg-purple-600 text-white border-transparent" : "border-white/10 text-white/60 hover:text-white"}`}
-          >
-            1 Month Ago (Month 1)
-          </button>
-          <button
-            onClick={() => handleSimulateMonths(3)}
-            className={`px-3 py-1 rounded text-[10px] font-bold border transition ${months === 3 ? "bg-purple-600 text-white border-transparent" : "border-white/10 text-white/60 hover:text-white"}`}
-          >
-            3 Months Ago (Month 3)
-          </button>
-          <button
-            onClick={() => handleSimulateMonths(6)}
-            className={`px-3 py-1 rounded text-[10px] font-bold border transition ${months === 6 ? "bg-purple-600 text-white border-transparent" : "border-white/10 text-white/60 hover:text-white"}`}
-          >
-            6 Months Ago (Month 6)
-          </button>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-4">
         {/* Left Column: Active Plan & Payment History */}
@@ -237,7 +175,7 @@ function SubscriptionPage() {
 
         {/* Right Column: Upgrade Options */}
         <div className="lg:col-span-1 space-y-4">
-          <h3 className="text-sm font-semibold text-white/90 mb-3 px-1">Plan Control Desk</h3>
+          <h3 className="text-sm font-semibold text-white/90 mb-3 px-1 font-bold">Upgrade Options</h3>
           
           {upgradeOptions.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-card/60 p-6 text-center text-xs text-white/50">
@@ -247,7 +185,7 @@ function SubscriptionPage() {
             upgradeOptions.map((opt, idx) => {
               const isSpecial = opt.id === "BeginnerProgram";
               const isFounder = opt.id === "Founder";
-              const features = UPGRADE_FEATURES[opt.id];
+              const features = PLAN_BENEFITS[opt.id];
 
               return (
                 <div

@@ -34,6 +34,7 @@ function PlanBadge({ plan }: { plan: PlanId }) {
 function PageGate({ requiredPlan, feature, description }: UpgradeGateProps) {
   const { title, description: defaultDesc, planLabel, planPrice } = upgradeText(requiredPlan);
   const isFounder = requiredPlan === "Founder";
+  const meta = getPlanMeta(requiredPlan);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 text-center flex flex-col items-center gap-6">
@@ -63,9 +64,7 @@ function PageGate({ requiredPlan, feature, description }: UpgradeGateProps) {
         <p className="text-[10px] uppercase tracking-wider text-white/40">Unlock with</p>
         <p className="text-3xl font-black text-white">
           {planPrice}
-          {requiredPlan !== "Founder" && (
-            <span className="text-sm font-normal text-white/40 ml-1">/mo</span>
-          )}
+          <span className="text-sm font-normal text-white/40 ml-1">{meta.period.toLowerCase()}</span>
         </p>
         <p className="text-xs text-white/55">{planLabel} Plan</p>
       </div>

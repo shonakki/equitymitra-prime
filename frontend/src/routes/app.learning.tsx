@@ -136,7 +136,7 @@ function LearningPage() {
     } else if (isPremium) {
       if (c.relIndex >= premiumLimit) {
         locked = true;
-        reqPlan = "PremiumYearly"; // Requires Yearly to unlock all released videos immediately
+        reqPlan = "PremiumYearly";
       }
     } else {
       // Starter / BeginnerProgram
@@ -182,7 +182,7 @@ function LearningPage() {
         <div className="mb-5 flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3">
           <p className="text-sm text-white/70">
             Access to Video Academy is locked on the {plan === "Starter" ? "Starter" : "Beginner Program"} plan. 
-            Upgrade to <span className="font-bold text-[var(--gold)]">Premium</span> to unlock courses.
+            Upgrade to <span className="font-bold text-white">Premium</span> to unlock courses.
           </p>
           <a
             href="/app/subscription"
@@ -198,20 +198,23 @@ function LearningPage() {
           const isComingSoon = c.status === "Coming Soon";
           let locked = false;
           let reqPlanLabel = "";
+          let reqPlanId: PlanId = "Premium";
 
           if (isComingSoon) {
-            locked = false; // It is coming soon, not upgrade locked
+            locked = false;
           } else if (isPremiumYearlyOrFounder) {
             locked = false;
           } else if (isPremium) {
             if (c.relIndex >= premiumLimit) {
               locked = true;
               reqPlanLabel = "Premium Yearly";
+              reqPlanId = "PremiumYearly";
             }
           } else {
             // Starter or Beginner
             locked = true;
-            reqPlanLabel = c.relIndex < 5 ? "Premium" : "Premium Yearly";
+            reqPlanId = c.relIndex < 5 ? "Premium" : "PremiumYearly";
+            reqPlanLabel = reqPlanId === "Premium" ? "Premium" : "Premium Yearly";
           }
 
           return (
@@ -255,11 +258,34 @@ function LearningPage() {
                     <h3 className="text-sm font-bold text-white">{c.title}</h3>
                     {c.premium && !locked && !isComingSoon && (
                       <span className="inline-flex items-center gap-1 rounded-full gold-gradient text-black text-[10px] font-bold px-2 py-0.5">
-                        <Lock className="h-3 w-3" /> Premium
+                        Premium
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
+
+                  {/* Card Status & Required Plan Badge Row */}
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {isComingSoon ? (
+                      <span className="inline-flex items-center rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                        Coming Soon
+                      </span>
+                    ) : locked ? (
+                      <>
+                        <span className="inline-flex items-center gap-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                          Locked
+                        </span>
+                        <span className="inline-flex items-center gap-0.5 rounded bg-white/5 text-white/50 border border-white/10 text-[9px] font-medium px-1.5 py-0.5">
+                          Requires {reqPlanLabel}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="inline-flex items-center rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                        Released
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-2.5 flex items-center gap-3 text-[11px] text-white/45">
                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
                     {c.lessons > 0 && <span>{c.lessons} lessons</span>}
                   </div>

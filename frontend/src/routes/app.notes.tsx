@@ -305,6 +305,7 @@ function NotesPage() {
             const isComingSoon = n.status === "Coming Soon";
             let locked = false;
             let reqPlanLabel = "";
+            let reqPlanId: PlanId = "Premium";
 
             if (isComingSoon) {
               locked = false;
@@ -314,10 +315,12 @@ function NotesPage() {
               if (n.relIndex >= premiumLimit) {
                 locked = true;
                 reqPlanLabel = "Premium Yearly";
+                reqPlanId = "PremiumYearly";
               }
             } else {
               locked = true;
-              reqPlanLabel = n.relIndex < 10 ? "Premium" : "Premium Yearly";
+              reqPlanId = n.relIndex < 10 ? "Premium" : "PremiumYearly";
+              reqPlanLabel = reqPlanId === "Premium" ? "Premium" : "Premium Yearly";
             }
 
             return (
@@ -371,7 +374,28 @@ function NotesPage() {
 
                   <h3 className="mt-3 text-sm font-semibold text-white">{n.title}</h3>
                   <p className="mt-1 text-[11px] text-white/45">{n.cat} · {n.pages} pages · {n.size}</p>
-                  <p className="text-[10px] text-white/35 mt-1">{n.downloads.toLocaleString()} downloads</p>
+
+                  {/* Card Status & Required Plan Badge Row */}
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {isComingSoon ? (
+                      <span className="inline-flex items-center rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                        Coming Soon
+                      </span>
+                    ) : locked ? (
+                      <>
+                        <span className="inline-flex items-center gap-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                          Locked
+                        </span>
+                        <span className="inline-flex items-center gap-0.5 rounded bg-white/5 text-white/50 border border-white/10 text-[9px] font-medium px-1.5 py-0.5">
+                          Requires {reqPlanLabel}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="inline-flex items-center rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                        Released
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {!locked && !isComingSoon && (

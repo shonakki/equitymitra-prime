@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Play, Clock, Lock, Sparkles, X, Tv, BookOpen } from "lucide-react";
+import { Play, Clock, Lock, Sparkles, X, Tv, BookOpen, Check } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { useAuth, usePlan } from "@/lib/auth";
 import { getPlanMeta, canAccessBeginnerAcademy, type PlanId } from "@/lib/subscription";
@@ -11,22 +11,44 @@ export const Route = createFileRoute("/app/beginner")({
 });
 
 type Lesson = {
+  moduleNumber: number;
   title: string;
   duration: string;
   lessons: number;
-  level: "Beginner";
   status: "Released" | "Coming Soon";
 };
 
-const LESSONS: Lesson[] = [
-  { title: "Introduction to Stock Markets", duration: "1h 15m", lessons: 5, level: "Beginner", status: "Released" },
-  { title: "Understanding Shares & Exchanges", duration: "1h 30m", lessons: 6, level: "Beginner", status: "Released" },
-  { title: "Basics of Technical Analysis", duration: "2h 10m", lessons: 8, level: "Beginner", status: "Released" },
-  { title: "Basics of Fundamental Analysis", duration: "2h 45m", lessons: 9, level: "Beginner", status: "Released" },
-  { title: "Risk Management & Capital Preservation", duration: "1h 20m", lessons: 4, level: "Beginner", status: "Released" },
-  { title: "Choosing Your First Broker", duration: "45m", lessons: 3, level: "Beginner", status: "Released" },
-  { title: "Developing Trading Discipline", duration: "1h 05m", lessons: 5, level: "Beginner", status: "Coming Soon" },
-  { title: "Portfolio Diversification Strategies", duration: "1h 50m", lessons: 7, level: "Beginner", status: "Coming Soon" },
+const MODULES: Lesson[] = [
+  { moduleNumber: 1, title: "Introduction to Stock Market", duration: "1h 15m", lessons: 5, status: "Released" },
+  { moduleNumber: 2, title: "Candlesticks & Charts", duration: "1h 30m", lessons: 6, status: "Released" },
+  { moduleNumber: 3, title: "Technical Analysis Basics", duration: "2h 10m", lessons: 8, status: "Released" },
+  { moduleNumber: 4, title: "Fundamental Analysis Basics", duration: "2h 45m", lessons: 9, status: "Released" },
+  { moduleNumber: 5, title: "Risk Management", duration: "1h 20m", lessons: 4, status: "Released" },
+  { moduleNumber: 6, title: "Trading Psychology", duration: "1h 05m", lessons: 5, status: "Released" },
+  { moduleNumber: 7, title: "Position Sizing", duration: "45m", lessons: 3, status: "Released" },
+  { moduleNumber: 8, title: "Portfolio Building", duration: "1h 15m", lessons: 4, status: "Released" },
+  { moduleNumber: 9, title: "Market Cycles & Investing", duration: "1h 40m", lessons: 6, status: "Coming Soon" },
+  { moduleNumber: 10, title: "Practical Market Application", duration: "2h 00m", lessons: 8, status: "Coming Soon" },
+];
+
+const HIGHLIGHTS = [
+  "10+ Structured Learning Modules",
+  "30+ Detailed Video Lessons",
+  "Stock Market Basics Explained Simply",
+  "Candlestick Patterns & Chart Reading",
+  "Technical Analysis Fundamentals",
+  "Fundamental Analysis Basics",
+  "Broker Setup & Order Types",
+  "Risk Management & Position Sizing",
+  "Real Trading Examples & Case Studies",
+  "Investor Awareness & Common Mistakes",
+];
+
+const STATS = [
+  { value: "10+", label: "Modules" },
+  { value: "30+", label: "Videos" },
+  { value: "Beginner", label: "Friendly" },
+  { value: "Lifetime", label: "Access" },
 ];
 
 function BeginnerAcademyPage() {
@@ -45,120 +67,163 @@ function BeginnerAcademyPage() {
     if (l.status === "Coming Soon") return;
 
     if (!hasAccess) {
-      setModalFeature(`Beginner Program: ${l.title}`);
+      setModalFeature(`Beginner Program: Module ${l.moduleNumber} – ${l.title}`);
       setModalOpen(true);
     } else {
-      setPlayingVideo(l.title);
+      setPlayingVideo(`Module ${l.moduleNumber} – ${l.title}`);
     }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 relative">
-      <PageHeader
-        eyebrow="Specialized Program"
-        title="Beginner Stock Market & Investor Awareness Academy"
-        description="Curriculum for the ₹9,999 Beginner Program. From zero to market practitioner. Study at your own pace."
-      />
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 relative space-y-8">
+      {/* Premium Hero Section */}
+      <section className="relative rounded-3xl border border-[var(--gold)]/35 bg-gradient-to-b from-slate-950 via-card/85 to-card/60 p-6 md:p-8 overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--gold)]/5 rounded-full blur-[100px] pointer-events-none" />
+        
+        <div className="relative z-10 grid md:grid-cols-5 gap-6 md:gap-8 items-center">
+          {/* Hero Content */}
+          <div className="md:col-span-3 space-y-4 text-left">
+            <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider bg-purple-500/15 text-purple-300 border border-purple-500/30">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+              Specialized Course
+            </span>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Beginner Stock Market &<br />
+              <span className="gold-text">Investor Awareness Program</span>
+            </h1>
+            <p className="text-sm md:text-base text-white/70 leading-relaxed max-w-xl">
+              A complete beginner-to-confident-investor learning path designed for people starting from absolute zero.
+            </p>
 
-      {/* Access Status Banner */}
-      {hasAccess ? (
-        <div className="mb-5 flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-          <p className="text-sm text-white/70">
-            <span className="font-bold text-emerald-400">Access Granted:</span> You have unlocked the Beginner Stock Market Program! All released lessons are available to watch below.
-          </p>
-          <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded font-black uppercase tracking-wider border border-emerald-500/30">
-            UNLOCKED
-          </span>
+            {/* Highlights Grid */}
+            <ul className="grid sm:grid-cols-2 gap-2.5 pt-2">
+              {HIGHLIGHTS.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2 text-xs text-white/80">
+                  <Check className="h-4 w-4 text-[var(--gold)] shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Unlock CTA Button */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
+              {!hasAccess ? (
+                <button
+                  onClick={() => {
+                    setModalFeature("Beginner Stock Market Program");
+                    setModalOpen(true);
+                  }}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-purple-600 text-white hover:bg-purple-500 font-extrabold text-sm uppercase tracking-wider shadow-lg transition duration-200 cursor-pointer"
+                >
+                  Unlock Beginner Program – ₹9,999
+                </button>
+              ) : (
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                  Unlocked & Active
+                </span>
+              )}
+              <span className="text-xs text-white/40">Includes Lifetime Access · 30-day Money-back Guarantee</span>
+            </div>
+          </div>
+
+          {/* Stats Cards & Image Preview */}
+          <div className="md:col-span-2 grid grid-cols-2 gap-3">
+            {STATS.map((stat, idx) => (
+              <div key={idx} className="rounded-2xl border border-white/10 bg-slate-900/50 p-4 text-center">
+                <p className="text-2xl font-black gold-text">{stat.value}</p>
+                <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1 font-semibold">{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div className="mb-5 flex items-center justify-between rounded-xl border border-[var(--gold)]/20 bg-[var(--gold)]/5 px-4 py-3">
-          <p className="text-sm text-white/70">
-            The curriculum is visible below. Purchase the <span className="font-bold text-[var(--gold)]">₹9,999 Beginner Program</span> to unlock the lessons and start learning.
-          </p>
-          <button
-            onClick={() => {
-              setModalFeature("Beginner Stock Market Program");
-              setModalOpen(true);
-            }}
-            className="shrink-0 ml-4 inline-flex items-center gap-1 rounded-md gold-gradient text-black text-[11px] font-bold px-3 py-1.5 hover:opacity-90 transition"
-          >
-            Unlock Now
-          </button>
-        </div>
-      )}
+      </section>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {LESSONS.map((l, index) => {
-          const isComingSoon = l.status === "Coming Soon";
-          const locked = !hasAccess && !isComingSoon;
+      {/* Curriculum Preview Section */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-[var(--gold)]" />
+          Course Curriculum Preview
+        </h2>
+        <p className="text-xs text-white/50 -mt-2">
+          Curriculum is visible to everyone. Lessons remain locked unless the Beginner Program is purchased.
+        </p>
 
-          return (
-            <article
-              key={l.title}
-              onClick={() => handleLessonClick(l)}
-              className={`group relative rounded-xl border bg-card/60 p-4 transition flex flex-col justify-between cursor-pointer ${
-                isComingSoon
-                  ? "border-white/5 opacity-50 cursor-not-allowed"
-                  : locked
-                  ? "border-white/10 hover:border-white/20"
-                  : "border-white/10 hover:border-[var(--gold)]/30 hover:-translate-y-0.5"
-              }`}
-            >
-              <div>
-                <div className="relative h-32 w-full rounded-lg overflow-hidden border border-white/10 bg-slate-950 flex items-center justify-center">
-                  <BookOpen className="h-10 w-10 text-[var(--gold)] opacity-40 group-hover:scale-110 transition duration-300" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  {!isComingSoon && !locked && (
-                    <div className="absolute inset-0 grid place-items-center">
-                      <div className="h-10 w-10 rounded-full gold-gradient grid place-items-center text-black shadow-lg">
-                        <Play className="h-4.5 w-4.5 ml-0.5 fill-current" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {MODULES.map((l) => {
+            const isComingSoon = l.status === "Coming Soon";
+            const locked = !hasAccess && !isComingSoon;
+
+            return (
+              <article
+                key={l.moduleNumber}
+                onClick={() => handleLessonClick(l)}
+                className={`group relative rounded-xl border bg-card/60 p-4 transition flex flex-col justify-between cursor-pointer ${
+                  isComingSoon
+                    ? "border-white/5 opacity-50 cursor-not-allowed"
+                    : locked
+                    ? "border-white/10 hover:border-white/20"
+                    : "border-white/10 hover:border-[var(--gold)]/30 hover:-translate-y-0.5"
+                }`}
+              >
+                <div>
+                  <div className="relative h-32 w-full rounded-lg overflow-hidden border border-white/10 bg-slate-950 flex items-center justify-center">
+                    <BookOpen className="h-10 w-10 text-[var(--gold)] opacity-40 group-hover:scale-110 transition duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    {!isComingSoon && !locked && (
+                      <div className="absolute inset-0 grid place-items-center">
+                        <div className="h-10 w-10 rounded-full gold-gradient grid place-items-center text-black shadow-lg">
+                          <Play className="h-4.5 w-4.5 ml-0.5 fill-current" />
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  <span className="absolute bottom-2 left-2 text-[9px] uppercase tracking-wider text-white/85 bg-black/65 px-2 py-0.5 rounded">
-                    Lesson {index + 1}
-                  </span>
-                </div>
-
-                {/* Status Badges or Lock Overlay */}
-                {isComingSoon && (
-                  <div className="absolute inset-0 rounded-xl bg-black/65 flex flex-col items-center justify-center gap-2 z-10 pointer-events-none">
-                    <span className="inline-flex items-center gap-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/35 text-[10px] font-black px-2 py-0.5 uppercase tracking-widest">
-                      Coming Soon
+                    )}
+                    <span className="absolute bottom-2 left-2 text-[9px] uppercase tracking-wider text-white/85 bg-black/65 px-2.5 py-0.5 rounded">
+                      Module {l.moduleNumber}
                     </span>
                   </div>
-                )}
 
-                {locked && (
-                  <div className="absolute inset-0 rounded-xl bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1.5 z-10">
-                    <div className="h-9 w-9 rounded-full border border-purple-400/40 bg-purple-500/10 grid place-items-center">
-                      <Lock className="h-3.5 w-3.5 text-purple-400" />
+                  {/* Status Badges or Lock Overlay */}
+                  {isComingSoon && (
+                    <div className="absolute inset-0 rounded-xl bg-black/65 flex flex-col items-center justify-center gap-2 z-10 pointer-events-none">
+                      <span className="inline-flex items-center gap-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/35 text-[10px] font-black px-2 py-0.5 uppercase tracking-widest">
+                        Coming Soon
+                      </span>
                     </div>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-purple-300">Beginner Program</p>
-                    <span className="text-[8px] text-white/50">Click to purchase program</span>
+                  )}
+
+                  {locked && (
+                    <div className="absolute inset-0 rounded-xl bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1.5 z-10">
+                      <div className="h-9 w-9 rounded-full border border-purple-400/40 bg-purple-500/10 grid place-items-center">
+                        <Lock className="h-3.5 w-3.5 text-purple-400" />
+                      </div>
+                      <p className="text-[9px] font-black uppercase tracking-wider text-purple-300">Beginner Program</p>
+                      <span className="text-[8px] text-white/50">Click to purchase program</span>
+                    </div>
+                  )}
+
+                  <div className="pt-3">
+                    <h3 className="text-sm font-bold text-white group-hover:text-[var(--gold)] transition-colors">
+                      {l.title}
+                    </h3>
+                    <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
+                      <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {l.duration}</span>
+                      <span>{l.lessons} video chapters</span>
+                    </div>
+                  </div>
+                </div>
+
+                {!locked && !isComingSoon && (
+                  <div className="pt-3">
+                    <button className="w-full rounded-md gold-gradient text-black text-xs font-semibold py-1.5 hover:opacity-90 transition">
+                      Start Learning
+                    </button>
                   </div>
                 )}
-
-                <div className="pt-3">
-                  <h3 className="text-sm font-bold text-white group-hover:text-[var(--gold)] transition-colors">{l.title}</h3>
-                  <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
-                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {l.duration}</span>
-                    <span>{l.lessons} video chapters</span>
-                  </div>
-                </div>
-              </div>
-
-              {!locked && !isComingSoon && (
-                <div className="pt-3">
-                  <button className="w-full rounded-md gold-gradient text-black text-xs font-semibold py-1.5 hover:opacity-90 transition">
-                    Start Learning
-                  </button>
-                </div>
-              )}
-            </article>
-          );
-        })}
-      </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Simulated Player */}
       {playingVideo && (
@@ -173,7 +238,7 @@ function BeginnerAcademyPage() {
             <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4 text-center">
               <Tv className="h-16 w-16 text-[var(--gold)] animate-pulse" />
               <div>
-                <h3 className="text-xl font-extrabold text-white">Beginner Academy: {playingVideo}</h3>
+                <h3 className="text-xl font-extrabold text-white">{playingVideo}</h3>
                 <p className="text-sm text-white/50 mt-1 max-w-md mx-auto">
                   [Simulated Player] Streaming Beginner Stock Market & Investor Awareness lesson...
                 </p>
