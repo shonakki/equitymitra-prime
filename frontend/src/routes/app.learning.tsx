@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Play, Clock, Lock } from "lucide-react";
+import { useState } from "react";
+import { Play, Clock, Lock, Sparkles, X, Tv } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { MiniChart } from "@/components/site/MiniChart";
-import { usePlan } from "@/lib/auth";
-import { canAccessVideoAcademy, getVideoLimit } from "@/lib/subscription";
-import { UpgradeGate } from "@/components/app/UpgradeGate";
+import { useAuth, usePlan } from "@/lib/auth";
+import { getPlanMeta, getMonthsSinceJoined, type PlanId } from "@/lib/subscription";
+import { UpgradeModal } from "@/components/app/UpgradeModal";
 
 export const Route = createFileRoute("/app/learning")({
   component: LearningPage,
@@ -19,18 +20,19 @@ type Course = {
   pattern: Pattern;
   trend: "up" | "down";
   premium?: boolean;
+  status: "Released" | "Coming Soon";
 };
 
 const COURSES: Course[] = [
-  { title: "Beginner Course", duration: "3h 20m", level: "Beginner", lessons: 14, pattern: "candles", trend: "up" },
-  { title: "Price Action", duration: "5h 10m", level: "Intermediate", lessons: 22, pattern: "structure", trend: "up" },
-  { title: "ATE Model", duration: "2h 40m", level: "Intermediate", lessons: 11, pattern: "ate", trend: "up", premium: true },
-  { title: "Risk Management", duration: "1h 50m", level: "Beginner", lessons: 9, pattern: "volume", trend: "down" },
-  { title: "Trading Psychology", duration: "2h 05m", level: "Intermediate", lessons: 10, pattern: "psychology", trend: "up" },
-  { title: "Live Sessions", duration: "Weekly", level: "Advanced", lessons: 0, pattern: "screen", trend: "up", premium: true },
-  { title: "Advanced Strategies", duration: "6h 30m", level: "Advanced", lessons: 18, pattern: "ate", trend: "down", premium: true },
-  { title: "Market Structure", duration: "3h 15m", level: "Intermediate", lessons: 12, pattern: "structure", trend: "up" },
-  { title: "Volume Analysis", duration: "4h 45m", level: "Advanced", lessons: 16, pattern: "volume", trend: "up", premium: true },
+  { title: "Beginner Course", duration: "3h 20m", level: "Beginner", lessons: 14, pattern: "candles", trend: "up", status: "Released" },
+  { title: "Price Action", duration: "5h 10m", level: "Intermediate", lessons: 22, pattern: "structure", trend: "up", status: "Released" },
+  { title: "ATE Model", duration: "2h 40m", level: "Intermediate", lessons: 11, pattern: "ate", trend: "up", premium: true, status: "Released" },
+  { title: "Risk Management", duration: "1h 50m", level: "Beginner", lessons: 9, pattern: "volume", trend: "down", status: "Released" },
+  { title: "Trading Psychology", duration: "2h 05m", level: "Intermediate", lessons: 10, pattern: "psychology", trend: "up", status: "Released" },
+  { title: "Live Sessions", duration: "Weekly", level: "Advanced", lessons: 0, pattern: "screen", trend: "up", premium: true, status: "Released" },
+  { title: "Advanced Strategies", duration: "6h 30m", level: "Advanced", lessons: 18, pattern: "ate", trend: "down", premium: true, status: "Released" },
+  { title: "Market Structure", duration: "3h 15m", level: "Intermediate", lessons: 12, pattern: "structure", trend: "up", status: "Coming Soon" },
+  { title: "Volume Analysis", duration: "4h 45m", level: "Advanced", lessons: 16, pattern: "volume", trend: "up", premium: true, status: "Coming Soon" },
 ];
 
 function PsychologyThumb() {
@@ -59,7 +61,7 @@ function ScreenThumb() {
   );
 }
 
-function Thumb({ pattern, trend, title, level }: { pattern: Pattern; trend: "up" | "down"; title: string; level: string }) {
+function Thumb({ pattern, trend, title, level, isComingSoon }: { pattern: Pattern; trend: "up" | "down"; title: string; level: string; isComingSoon?: boolean }) {
   return (
     <div className="relative h-36 w-full rounded-lg overflow-hidden border border-white/10 bg-black/60">
       {pattern === "psychology" ? (
@@ -77,11 +79,13 @@ function Thumb({ pattern, trend, title, level }: { pattern: Pattern; trend: "up"
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-      <div className="absolute inset-0 grid place-items-center">
-        <div className="h-12 w-12 rounded-full gold-gradient grid place-items-center text-black shadow-lg">
-          <Play className="h-5 w-5 ml-0.5 fill-current" />
+      {!isComingSoon && (
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="h-12 w-12 rounded-full gold-gradient grid place-items-center text-black shadow-lg">
+            <Play className="h-5 w-5 ml-0.5 fill-current" />
+          </div>
         </div>
-      </div>
+      )}
       <span className="absolute bottom-2 left-2 text-[10px] uppercase tracking-wider text-white/85 bg-black/55 backdrop-blur px-2 py-0.5 rounded">
         {level}
       </span>
@@ -91,41 +95,79 @@ function Thumb({ pattern, trend, title, level }: { pattern: Pattern; trend: "up"
 
 function LearningPage() {
   const plan = usePlan();
+  const { user } = useAuth();
 
-  // Starter: no access
-  if (!canAccessVideoAcademy(plan)) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-        <PageHeader
-          eyebrow="Learning"
-          title="Video Academy"
-          description="Structured courses from absolute basics to ATE price-volume framework."
-        />
-        <UpgradeGate
-          requiredPlan="Premium"
-          feature="Video Academy"
-          description="Unlock structured video courses from beginner to advanced ATE strategies. Available from Premium plan."
-        />
-      </div>
-    );
-  }
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalRequired, setModalRequired] = useState<PlanId>("Premium");
+  const [modalFeature, setModalFeature] = useState("");
 
-  const limit = getVideoLimit(plan); // Infinity for PremiumYearly/Founder, 5 for Premium
-  const isLimited = limit !== Infinity;
+  // Video Playing State
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+
+  // Membership Months
+  const months = getMonthsSinceJoined(user?.memberSince);
+  const premiumLimit = 2 + months * 2; // Premium users get 2 + 2/month
+
+  // Compute released indices for courses
+  let releasedCounter = 0;
+  const processedCourses = COURSES.map((c) => {
+    let relIndex = -1;
+    if (c.status === "Released") {
+      relIndex = releasedCounter++;
+    }
+    return {
+      ...c,
+      relIndex,
+    };
+  });
+
+  const isPremium = plan === "Premium";
+  const isPremiumYearlyOrFounder = plan === "PremiumYearly" || plan === "Founder";
+
+  const handleCourseClick = (c: typeof processedCourses[0]) => {
+    if (c.status === "Coming Soon") return;
+
+    let locked = false;
+    let reqPlan: PlanId = "Premium";
+
+    if (isPremiumYearlyOrFounder) {
+      locked = false;
+    } else if (isPremium) {
+      if (c.relIndex >= premiumLimit) {
+        locked = true;
+        reqPlan = "PremiumYearly"; // Requires Yearly to unlock all released videos immediately
+      }
+    } else {
+      // Starter / BeginnerProgram
+      locked = true;
+      reqPlan = c.relIndex < 5 ? "Premium" : "PremiumYearly";
+    }
+
+    if (locked) {
+      setModalRequired(reqPlan);
+      setModalFeature(`Video Course: ${c.title}`);
+      setModalOpen(true);
+    } else {
+      setPlayingVideo(c.title);
+    }
+  };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 relative">
       <PageHeader
         eyebrow="Learning"
         title="Video Academy"
-        description="Structured courses from absolute basics to ATE price-volume framework. New lessons added every week."
+        description="Structured courses from absolute basics to advanced ATE models. New lessons added every week."
       />
 
-      {isLimited && (
+      {/* Plan-specific Info Banner */}
+      {isPremium && (
         <div className="mb-5 flex items-center justify-between rounded-xl border border-[var(--gold)]/20 bg-[var(--gold)]/5 px-4 py-3">
           <p className="text-sm text-white/70">
-            Your plan includes access to the first <span className="font-bold text-white">{limit}</span> courses.
-            Upgrade to Premium Yearly for the full library.
+            Your Premium subscription unlocks <span className="font-bold text-white">{premiumLimit}</span> courses this month. 
+            Next batch of 2 videos will unlock in your next billing cycle. 
+            Upgrade to <span className="font-bold text-[var(--gold)]">Premium Yearly</span> for immediate access to all released videos.
           </p>
           <a
             href="/app/subscription"
@@ -136,46 +178,101 @@ function LearningPage() {
         </div>
       )}
 
+      {(plan === "Starter" || plan === "BeginnerProgram") && (
+        <div className="mb-5 flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3">
+          <p className="text-sm text-white/70">
+            Access to Video Academy is locked on the {plan === "Starter" ? "Starter" : "Beginner Program"} plan. 
+            Upgrade to <span className="font-bold text-[var(--gold)]">Premium</span> to unlock courses.
+          </p>
+          <a
+            href="/app/subscription"
+            className="shrink-0 ml-4 inline-flex items-center gap-1 rounded-md gold-gradient text-black text-[11px] font-bold px-3 py-1.5 hover:opacity-90 transition"
+          >
+            Upgrade Options
+          </a>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {COURSES.map((c, index) => {
-          const locked = isLimited && index >= limit;
+        {processedCourses.map((c) => {
+          const isComingSoon = c.status === "Coming Soon";
+          let locked = false;
+          let reqPlanLabel = "";
+
+          if (isComingSoon) {
+            locked = false; // It is coming soon, not upgrade locked
+          } else if (isPremiumYearlyOrFounder) {
+            locked = false;
+          } else if (isPremium) {
+            if (c.relIndex >= premiumLimit) {
+              locked = true;
+              reqPlanLabel = "Premium Yearly";
+            }
+          } else {
+            // Starter or Beginner
+            locked = true;
+            reqPlanLabel = c.relIndex < 5 ? "Premium" : "Premium Yearly";
+          }
+
           return (
             <article
               key={c.title + c.level + c.duration}
-              className={`group relative rounded-xl border bg-card/60 p-3 transition ${
-                locked
-                  ? "border-white/5 opacity-60 cursor-not-allowed"
+              onClick={() => handleCourseClick(c)}
+              className={`group relative rounded-xl border bg-card/60 p-3 transition flex flex-col justify-between cursor-pointer ${
+                isComingSoon
+                  ? "border-white/5 opacity-50 cursor-not-allowed"
+                  : locked
+                  ? "border-white/10 hover:border-white/20"
                   : "border-white/10 hover:border-[var(--gold)]/30 hover:-translate-y-0.5"
               }`}
             >
-              <Thumb pattern={c.pattern} trend={c.trend} title={c.title} level={c.level} />
-              {locked && (
-                <div className="absolute inset-0 rounded-xl bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10">
-                  <div className="h-10 w-10 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 grid place-items-center">
-                    <Lock className="h-4 w-4 text-[var(--gold)]" />
-                  </div>
-                  <p className="text-xs font-semibold text-white/70">Premium Yearly</p>
-                </div>
-              )}
-              <div className="px-1 pt-3 pb-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white">{c.title}</h3>
-                  {c.premium && !locked && (
-                    <span className="inline-flex items-center gap-1 rounded-full gold-gradient text-black text-[10px] font-bold px-2 py-0.5">
-                      <Lock className="h-3 w-3" /> Prime
+              <div>
+                <Thumb pattern={c.pattern} trend={c.trend} title={c.title} level={c.level} isComingSoon={isComingSoon} />
+                
+                {/* Status Badges or Lock Overlay */}
+                {isComingSoon && (
+                  <div className="absolute inset-0 rounded-xl bg-black/60 flex flex-col items-center justify-center gap-2 z-10 pointer-events-none">
+                    <span className="inline-flex items-center gap-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/35 text-[10px] font-black px-2 py-0.5 uppercase tracking-widest">
+                      Coming Soon
                     </span>
-                  )}
+                  </div>
+                )}
+
+                {locked && (
+                  <div className="absolute inset-0 rounded-xl bg-black/55 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10">
+                    <div className="h-10 w-10 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 grid place-items-center">
+                      <Lock className="h-4 w-4 text-[var(--gold)]" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/80">{reqPlanLabel}</p>
+                    <span className="text-[9px] text-[var(--gold)] underline font-semibold mt-0.5">
+                      Click to unlock
+                    </span>
+                  </div>
+                )}
+
+                <div className="px-1 pt-3 pb-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-bold text-white">{c.title}</h3>
+                    {c.premium && !locked && !isComingSoon && (
+                      <span className="inline-flex items-center gap-1 rounded-full gold-gradient text-black text-[10px] font-bold px-2 py-0.5">
+                        <Lock className="h-3 w-3" /> Premium
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
+                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
+                    {c.lessons > 0 && <span>{c.lessons} lessons</span>}
+                  </div>
                 </div>
-                <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/45">
-                  <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
-                  {c.lessons > 0 && <span>{c.lessons} lessons</span>}
-                </div>
-                {!locked && (
-                  <button className="mt-3 w-full rounded-md gold-gradient text-black text-xs font-semibold py-2 hover:opacity-90 transition">
+              </div>
+
+              {!locked && !isComingSoon && (
+                <div className="px-1 pt-2">
+                  <button className="w-full rounded-md gold-gradient text-black text-xs font-semibold py-2 hover:opacity-90 transition">
                     Watch Now
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </article>
           );
         })}
@@ -184,6 +281,44 @@ function LearningPage() {
       <p className="mt-8 text-[11px] text-white/35">
         Video player placeholder — connect Bunny.net, Vimeo or Mux for streaming and progress tracking.
       </p>
+
+      {/* Simulated Video Player Modal */}
+      {playingVideo && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md grid place-items-center p-4">
+          <div className="relative max-w-4xl w-full aspect-video bg-slate-900 border border-[var(--gold)]/20 rounded-2xl flex flex-col justify-between overflow-hidden shadow-2xl">
+            <button
+              onClick={() => setPlayingVideo(null)}
+              className="absolute top-4 right-4 z-55 text-white/60 hover:text-white bg-black/40 p-2 rounded-full cursor-pointer hover:bg-black/60 transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4 text-center">
+              <Tv className="h-16 w-16 text-[var(--gold)] animate-pulse" />
+              <div>
+                <h3 className="text-xl font-extrabold text-white">Playing: {playingVideo}</h3>
+                <p className="text-sm text-white/50 mt-1 max-w-md mx-auto">
+                  [Simulated Player] Streaming high-quality institutional trading content from EquityMitra CDN...
+                </p>
+              </div>
+              <div className="mt-4 h-1 w-64 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-[var(--gold)] to-yellow-500 animate-[pulse_1.5s_infinite]" style={{ width: "45%" }} />
+              </div>
+            </div>
+            <div className="bg-slate-950/80 border-t border-white/5 px-6 py-4 flex items-center justify-between text-xs text-white/60">
+              <span>HD Streaming • 1080p</span>
+              <span>EquityMitra Academy Player</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        requiredPlan={modalRequired}
+        featureName={modalFeature}
+      />
     </div>
   );
 }

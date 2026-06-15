@@ -1,48 +1,31 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Eye, LineChart, TrendingUp,
-  Briefcase, History, GraduationCap, StickyNote, CreditCard, User, Search, LogOut, X, Lock,
+  Briefcase, History, GraduationCap, StickyNote, CreditCard, User, Search, LogOut, X, BookOpen, Crown,
 } from "lucide-react";
 import { useAuth, usePlan } from "@/lib/auth";
-import {
-  canAccessAnalyze,
-  canAccessPortfolio,
-  canAccessVideoAcademy,
-  canAccessPdfLibrary,
-} from "@/lib/subscription";
-import type { PlanId } from "@/lib/subscription";
+import { getPlanMeta } from "@/lib/subscription";
 
 type NavItem = {
   label: string;
   to: string;
   icon: React.ElementType;
-  /** If set, the item is locked when the user's plan is below this */
-  requiresPlan?: PlanId;
 };
 
 const NAV: NavItem[] = [
   { label: "Watchlist",        to: "/app",              icon: Eye },
   { label: "Markets",          to: "/app/market",       icon: LineChart },
-  { label: "Analyze Your Stock", to: "/app/analyze",   icon: Search,        requiresPlan: "Premium" },
+  { label: "Analyze Your Stock", to: "/app/analyze",   icon: Search },
   { label: "Trade",            to: "/app/trades",       icon: TrendingUp },
-  { label: "Portfolio Tracker",to: "/app/portfolio",    icon: Briefcase,     requiresPlan: "Premium" },
+  { label: "Portfolio Tracker",to: "/app/portfolio",    icon: Briefcase },
   { label: "Past Performance", to: "/app/performance",  icon: History },
-  { label: "Learning Videos",  to: "/app/learning",     icon: GraduationCap, requiresPlan: "Premium" },
-  { label: "Notes PDF Library",to: "/app/notes",        icon: StickyNote,    requiresPlan: "Premium" },
+  { label: "Learning Videos",  to: "/app/learning",     icon: GraduationCap },
+  { label: "Beginner Academy", to: "/app/beginner",     icon: BookOpen },
+  { label: "Founder Academy",  to: "/app/founder",      icon: Crown },
+  { label: "Notes PDF Library",to: "/app/notes",        icon: StickyNote },
   { label: "My Subscription",  to: "/app/subscription", icon: CreditCard },
   { label: "Profile",          to: "/app/account",      icon: User },
 ];
-
-/** Returns true if the nav item is locked for the current plan */
-function isNavLocked(item: NavItem, plan: PlanId): boolean {
-  if (!item.requiresPlan) return false;
-  // Use the same gate helpers so the lock icon matches the page gate
-  if (item.to === "/app/analyze")   return !canAccessAnalyze(plan);
-  if (item.to === "/app/portfolio") return !canAccessPortfolio(plan);
-  if (item.to === "/app/learning")  return !canAccessVideoAcademy(plan);
-  if (item.to === "/app/notes")     return !canAccessPdfLibrary(plan);
-  return false;
-}
 
 export function AppSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -50,12 +33,16 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
   const plan = usePlan();
 
   const showUpgradeCard = plan !== "Founder";
+  const activePlanMeta = getPlanMeta(plan);
+
   const upgradeLabel =
     plan === "Starter"
       ? "Unlock Premium Features"
       : plan === "Premium"
       ? "Unlock Full Library & More"
-      : "Unlock Lifetime Access";
+      : plan === "PremiumYearly"
+      ? "Unlock Lifetime Access"
+      : "Access All Features";
 
   return (
     <aside className="h-full w-64 shrink-0 border-r border-white/10 bg-sidebar/95 backdrop-blur flex flex-col">
@@ -79,7 +66,6 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
             {NAV.map((n) => {
               const active = pathname === n.to;
               const Icon = n.icon;
-              const locked = isNavLocked(n, plan);
               return (
                 <li key={n.label}>
                   <Link
@@ -88,16 +74,11 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
                     className={`group flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition ${
                       active
                         ? "bg-[var(--gold)]/10 text-[var(--gold)]"
-                        : locked
-                        ? "text-white/40 hover:bg-white/5 hover:text-white/60"
                         : "text-white/70 hover:bg-white/5 hover:text-white"
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     <span className="flex-1">{n.label}</span>
-                    {locked && !active && (
-                      <Lock className="h-3 w-3 shrink-0 text-white/30" />
-                    )}
                     {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />}
                   </Link>
                 </li>
@@ -109,9 +90,9 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
         {showUpgradeCard && (
           <div className="rounded-xl border border-[var(--gold)]/25 bg-gradient-to-b from-[var(--gold)]/10 to-transparent p-3">
             <p className="text-[10px] uppercase tracking-wider text-[var(--gold)] font-semibold">
-              {plan === "Starter" ? "Starter Plan" : "Premium Plan"}
+              {activePlanMeta.label}
             </p>
-            <p className="mt-1 text-sm text-white">{upgradeLabel}</p>
+            <p className="mt-1 text-xs text-white/80">{upgradeLabel}</p>
             <Link
               to="/app/subscription"
               onClick={onClose}

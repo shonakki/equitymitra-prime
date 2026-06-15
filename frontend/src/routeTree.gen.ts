@@ -20,6 +20,8 @@ import { Route as AppPerformanceRouteImport } from './routes/app.performance'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppMarketRouteImport } from './routes/app.market'
 import { Route as AppLearningRouteImport } from './routes/app.learning'
+import { Route as AppFounderRouteImport } from './routes/app.founder'
+import { Route as AppBeginnerRouteImport } from './routes/app.beginner'
 import { Route as AppAnalyzeRouteImport } from './routes/app.analyze'
 import { Route as AppAccountRouteImport } from './routes/app.account'
 
@@ -78,6 +80,16 @@ const AppLearningRoute = AppLearningRouteImport.update({
   path: '/learning',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFounderRoute = AppFounderRouteImport.update({
+  id: '/founder',
+  path: '/founder',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBeginnerRoute = AppBeginnerRouteImport.update({
+  id: '/beginner',
+  path: '/beginner',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAnalyzeRoute = AppAnalyzeRouteImport.update({
   id: '/analyze',
   path: '/analyze',
@@ -95,6 +107,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
+  '/app/beginner': typeof AppBeginnerRoute
+  '/app/founder': typeof AppFounderRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
   '/app/notes': typeof AppNotesRoute
@@ -109,6 +123,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
+  '/app/beginner': typeof AppBeginnerRoute
+  '/app/founder': typeof AppFounderRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
   '/app/notes': typeof AppNotesRoute
@@ -125,6 +141,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
+  '/app/beginner': typeof AppBeginnerRoute
+  '/app/founder': typeof AppFounderRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
   '/app/notes': typeof AppNotesRoute
@@ -142,6 +160,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/account'
     | '/app/analyze'
+    | '/app/beginner'
+    | '/app/founder'
     | '/app/learning'
     | '/app/market'
     | '/app/notes'
@@ -156,6 +176,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/account'
     | '/app/analyze'
+    | '/app/beginner'
+    | '/app/founder'
     | '/app/learning'
     | '/app/market'
     | '/app/notes'
@@ -171,6 +193,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/account'
     | '/app/analyze'
+    | '/app/beginner'
+    | '/app/founder'
     | '/app/learning'
     | '/app/market'
     | '/app/notes'
@@ -266,6 +290,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLearningRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/founder': {
+      id: '/app/founder'
+      path: '/founder'
+      fullPath: '/app/founder'
+      preLoaderRoute: typeof AppFounderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/beginner': {
+      id: '/app/beginner'
+      path: '/beginner'
+      fullPath: '/app/beginner'
+      preLoaderRoute: typeof AppBeginnerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/analyze': {
       id: '/app/analyze'
       path: '/analyze'
@@ -286,6 +324,8 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
   AppAnalyzeRoute: typeof AppAnalyzeRoute
+  AppBeginnerRoute: typeof AppBeginnerRoute
+  AppFounderRoute: typeof AppFounderRoute
   AppLearningRoute: typeof AppLearningRoute
   AppMarketRoute: typeof AppMarketRoute
   AppNotesRoute: typeof AppNotesRoute
@@ -299,6 +339,8 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
   AppAnalyzeRoute: AppAnalyzeRoute,
+  AppBeginnerRoute: AppBeginnerRoute,
+  AppFounderRoute: AppFounderRoute,
   AppLearningRoute: AppLearningRoute,
   AppMarketRoute: AppMarketRoute,
   AppNotesRoute: AppNotesRoute,

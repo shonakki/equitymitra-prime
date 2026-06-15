@@ -30,6 +30,8 @@ type Ctx = {
   logout: () => void;
   /** Dev-only: switch plan without re-logging in */
   setPlan: (plan: PlanId) => void;
+  /** Dev-only: switch member-since date to test monthly release gates */
+  setMemberSince: (isoDate: string) => void;
 };
 
 const AuthContext = createContext<Ctx | null>(null);
@@ -58,6 +60,7 @@ function buildUser(phone: string): User {
 function normalizePlan(raw: string | undefined): PlanId {
   if (raw === "Prime" || raw === "Premium") return "Premium";
   if (raw === "PremiumYearly") return "PremiumYearly";
+  if (raw === "BeginnerProgram" || raw === "Beginner") return "BeginnerProgram";
   if (raw === "Founder") return "Founder";
   return "Starter";
 }
@@ -103,8 +106,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setMemberSince = useCallback((isoDate: string) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, memberSince: isoDate };
+      localStorage.setItem(KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isAuthed: !!user, login, logout, setPlan }}>
+    <AuthContext.Provider value={{ user, isAuthed: !!user, login, logout, setPlan, setMemberSince }}>
       {children}
     </AuthContext.Provider>
   );
