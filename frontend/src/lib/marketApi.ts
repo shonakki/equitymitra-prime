@@ -119,10 +119,6 @@ export const marketApi = {
   banknifty: () => apiFetch<Quote>("/api/banknifty"),
   finnifty: () => apiFetch<Quote>("/api/finnifty"),
   sensex: () => apiFetch<Quote>("/api/sensex"),
-  watchlist: (symbols?: string[]) =>
-    apiFetch<Quote[]>(
-      `/api/watchlist${symbols?.length ? `?symbols=${symbols.join(",")}` : ""}`
-    ),
   stock: (symbol: string) => apiFetch<Quote>(`/api/stock/${symbol.toUpperCase()}`),
   dashboard: () => apiFetch<DashboardData>("/api/dashboard"),
   dashboardUSA: () => apiFetch<USADashboardData>("/api/dashboard/usa"),

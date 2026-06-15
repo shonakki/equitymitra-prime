@@ -1,20 +1,12 @@
 import { useRef, useState } from "react";
 import {
-  Star, TrendingUp, TrendingDown, Activity, Send, Upload, ImageIcon,
+  TrendingUp, TrendingDown, Activity, Send, Upload, ImageIcon,
   LineChart, Crown, Check, BarChart3,
 } from "lucide-react";
 import { MiniChart } from "./MiniChart";
 
 type Timeframe = "Intraday" | "Swing" | "Positional" | "Long Term";
 
-const WATCHLIST = [
-  { s: "RELIANCE", p: "2,945.30", c: "+1.12%", up: true },
-  { s: "TATAMOTORS", p: "972.10", c: "+2.10%", up: true },
-  { s: "HDFCBANK", p: "1,648.90", c: "-0.31%", up: false },
-  { s: "INFY", p: "1,872.20", c: "+0.67%", up: true },
-  { s: "SBIN", p: "812.45", c: "-0.18%", up: false },
-  { s: "ICICIBANK", p: "1,210.80", c: "+0.92%", up: true },
-];
 
 const INDICES = [
   { name: "NIFTY 50", value: "24,812", chg: "+184.30 (+0.75%)", up: true },
@@ -124,27 +116,6 @@ export function Login() {
       <div className="grid grid-cols-12 gap-4">
         {/* LEFT SIDEBAR */}
         <aside className="col-span-12 lg:col-span-3 space-y-4">
-          <div className="rounded-xl border border-white/10 bg-card/60 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-[var(--gold)]" />
-                <h3 className="text-sm font-semibold text-white">Watchlist</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-wider text-white/40">Live</span>
-            </div>
-            <ul className="space-y-1.5">
-              {WATCHLIST.map((w) => (
-                <li key={w.s} className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-white/5 transition">
-                  <span className="text-sm text-white/90 font-medium">{w.s}</span>
-                  <div className="text-right">
-                    <p className="text-xs text-white/80">{w.p}</p>
-                    <p className={`text-[10px] ${w.up ? "text-emerald-400" : "text-red-400"}`}>{w.c}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           <div className="rounded-xl border border-white/10 bg-card/60 p-4">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-4 w-4 text-[var(--gold)]" />

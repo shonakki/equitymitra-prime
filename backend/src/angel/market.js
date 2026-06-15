@@ -31,9 +31,7 @@ const TOKENS = {
   ...tokensJson
 };
 
-const DEFAULT_WATCHLIST = [
-  "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "TATAMOTORS", "ADANIENT", "LT",
-];
+
 
 function groupTokens(keys) {
   const exchangeTokens = {};
@@ -81,4 +79,4 @@ async function fetchQuote(keys, mode = "FULL") {
   return { fetched: merged, data: merged };
 }
 
-module.exports = { fetchQuote, TOKENS, DEFAULT_WATCHLIST };
+module.exports = { fetchQuote, TOKENS };

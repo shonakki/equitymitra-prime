@@ -1,5 +1,5 @@
 const express = require("express");
-const { fetchQuote, DEFAULT_WATCHLIST, TOKENS } = require("../angel/market");
+const { fetchQuote, TOKENS } = require("../angel/market");
 const { cleanSymbolKey, fetchStockDetails } = require("../angel/stockInfo");
 const smartstream = require("../angel/smartstream");
 const dashboard = require("../angel/dashboard");
@@ -33,16 +33,6 @@ router.get("/banknifty", single("BANKNIFTY"));
 router.get("/finnifty", single("FINNIFTY"));
 router.get("/sensex", single("SENSEX"));
 
-router.get("/watchlist", async (req, res, next) => {
-  try {
-    const symbols = (req.query.symbols
-      ? String(req.query.symbols).split(",").map((s) => s.trim()).filter(Boolean)
-      : DEFAULT_WATCHLIST);
-    const key = `wl:${symbols.join(",")}`;
-    const out = await cached(key, () => fetchQuote(symbols));
-    res.json({ ok: true, data: out.data });
-  } catch (e) { next(e); }
-});
 
 router.get("/stock/:symbol", async (req, res, next) => {
   try {

@@ -11,7 +11,6 @@ credentials and JWT never leave the server.
 - `GET /api/banknifty`
 - `GET /api/finnifty`
 - `GET /api/sensex`
-- `GET /api/watchlist?symbols=RELIANCE,TCS,INFY` (defaults to a curated list)
 - `GET /api/stock/:symbol` (e.g. `/api/stock/RELIANCE`)
 - `GET /api/symbols` (list of supported tickers)
 
