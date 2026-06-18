@@ -122,6 +122,7 @@ function usageKey(userId: string): string {
 }
 
 export function getAnalyzeUsed(userId: string): number {
+  if (typeof window === "undefined") return 0;
   try {
     const raw = localStorage.getItem(usageKey(userId));
     return raw ? parseInt(raw, 10) : 0;
@@ -131,6 +132,7 @@ export function getAnalyzeUsed(userId: string): number {
 }
 
 export function recordAnalyzeUsage(userId: string): void {
+  if (typeof window === "undefined") return;
   try {
     const key = usageKey(userId);
     const current = getAnalyzeUsed(userId);
