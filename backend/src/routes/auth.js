@@ -42,7 +42,7 @@ function checkOtpRateLimit(identifier) {
 }
 
 function createSession(userId, token, deviceInfo) {
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   db.prepare(
     "INSERT INTO user_sessions (user_id, token_hash, device_info, expires_at) VALUES (?, ?, ?, ?)"
   ).run(userId, hashToken(token), deviceInfo || null, expiresAt);
@@ -81,11 +81,21 @@ router.post("/send-otp", async (req, res) => {
       return res.status(429).json({ ok: false, error: "Too many OTP requests. Wait 10 minutes and try again." });
     }
 
+    if (phone) {
+      if (!process.env.MSG91_API_KEY || !process.env.MSG91_TEMPLATE_ID) {
+        return res.status(503).json({
+          ok: false,
+          error: "Mobile OTP will be available shortly. Please use Google Login or Email OTP."
+        });
+      }
+    }
+
     // Expire previous unused OTPs for this identifier
     db.prepare("UPDATE otps SET used = 1 WHERE identifier = ? AND used = 0").run(identifier);
 
     const otp       = generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
+    const expiryMs  = phone ? 10 * 60_000 : 5 * 60_000;
+    const expiresAt = new Date(Date.now() + expiryMs).toISOString();
 
     db.prepare(
       "INSERT INTO otps (identifier, code, expires_at) VALUES (?, ?, ?)"
@@ -118,11 +128,12 @@ router.post("/verify-otp", async (req, res) => {
       : email.toLowerCase().trim();
 
     // Find latest unused valid OTP
+    const now = new Date().toISOString();
     const record = db
       .prepare(
-        "SELECT * FROM otps WHERE identifier = ? AND used = 0 AND expires_at > datetime('now') ORDER BY id DESC LIMIT 1"
+        "SELECT * FROM otps WHERE identifier = ? AND used = 0 AND expires_at > ? ORDER BY id DESC LIMIT 1"
       )
-      .get(identifier);
+      .get(identifier, now);
 
     if (!record) {
       return res.status(400).json({ ok: false, error: "OTP expired. Request a new one." });

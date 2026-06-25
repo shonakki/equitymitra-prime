@@ -20,9 +20,10 @@ function requireAuth(req, res, next) {
 
     // Check session is still valid in DB (allows server-side logout)
     const tokenHash = hashToken(token);
+    const now       = new Date().toISOString();
     const session   = db
-      .prepare("SELECT id FROM user_sessions WHERE token_hash = ? AND expires_at > datetime('now')")
-      .get(tokenHash);
+      .prepare("SELECT id FROM user_sessions WHERE token_hash = ? AND expires_at > ?")
+      .get(tokenHash, now);
 
     if (!session) {
       return res.status(401).json({ ok: false, error: "Session expired. Please log in again." });

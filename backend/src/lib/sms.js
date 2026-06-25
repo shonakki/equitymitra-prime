@@ -49,10 +49,50 @@ async function sendOtp(phone, otp) {
 
 /**
  * sendEmailOtp(email, otp)
- * Placeholder — extend with Nodemailer / SendGrid / Resend.
+ * Sends a secure 6-digit OTP using Resend.
  */
 async function sendEmailOtp(email, otp) {
-  console.log(`[email:dev] OTP for ${email} → ${otp}`);
+  const apiKey    = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+
+  if (apiKey) {
+    try {
+      await axios.post(
+        "https://api.resend.com/emails",
+        {
+          from: `EquityMitra <${fromEmail}>`,
+          to: email,
+          subject: `${otp} is your EquityMitra OTP`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #edf2f7; border-radius: 12px; background-color: #ffffff; color: #1a202c;">
+              <h2 style="color: #4f46e5; margin-bottom: 20px; font-weight: 800; font-size: 22px;">EquityMitra Authentication</h2>
+              <p style="font-size: 16px; line-height: 1.5; color: #4a5568;">Use the following one-time password (OTP) to complete your login:</p>
+              <div style="font-size: 32px; font-weight: 800; letter-spacing: 4px; color: #1a202c; background-color: #f7fafc; padding: 15px; text-align: center; border-radius: 8px; margin: 25px 0; border: 1px solid #edf2f7;">
+                ${otp}
+              </div>
+              <p style="font-size: 14px; color: #718096; line-height: 1.5;">This OTP is secure and will expire in 5 minutes. If you did not request this, please ignore this email.</p>
+              <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 30px 0;" />
+              <p style="font-size: 12px; color: #a0aec0; text-align: center;">&copy; ${new Date().getFullYear()} EquityMitra. All rights reserved.</p>
+            </div>
+          `,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10_000,
+        }
+      );
+      console.log(`[email] OTP email sent successfully to ${email}`);
+    } catch (err) {
+      console.error("[email] Failed to send OTP via Resend:", err.response?.data || err.message);
+      throw new Error("Failed to send email OTP. Please try again later.");
+    }
+  } else {
+    // Fallback: log to console
+    console.log(`[email:dev] OTP for ${email} → ${otp}`);
+  }
   return { ok: true };
 }
 

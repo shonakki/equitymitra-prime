@@ -3,7 +3,7 @@ const jwt  = require("jsonwebtoken");
 const crypto = require("crypto");
 
 const SECRET = process.env.JWT_SECRET || "change-me-in-production-equitymitra-2025";
-const EXPIRY = "7d";
+const EXPIRY = "30d";
 
 /**
  * Sign a JWT containing user info + plan (plan is signed → tamper-proof).
