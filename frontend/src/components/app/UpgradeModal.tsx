@@ -66,7 +66,7 @@ const PLAN_FEATURES: Record<PlanId, string[]> = {
 
 export function UpgradeModal({ isOpen, onClose, requiredPlan, featureName }: UpgradeModalProps) {
   const currentPlan = usePlan();
-  const { setPlan } = useAuth();
+  const { user, updateToken } = useAuth();
 
   const currentMeta = getPlanMeta(currentPlan);
   const requiredMeta = getPlanMeta(requiredPlan);
@@ -74,9 +74,10 @@ export function UpgradeModal({ isOpen, onClose, requiredPlan, featureName }: Upg
   const eligibleIds = getEligiblePlans(requiredPlan).filter((id) => id !== currentPlan);
   const eligiblePlans = PLANS.filter((p) => eligibleIds.includes(p.id));
 
-  const handleUpgrade = (planId: PlanId) => {
-    setPlan(planId);
+  const handleUpgrade = async (planId: PlanId) => {
     onClose();
+    // Navigate to subscription page for Razorpay payment
+    window.location.href = '/app/subscription';
   };
 
   return (

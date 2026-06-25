@@ -10,9 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LegalRiskRouteImport } from './routes/legal.risk'
+import { Route as LegalRefundRouteImport } from './routes/legal.refund'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalDisclaimerRouteImport } from './routes/legal.disclaimer'
 import { Route as AppTradesRouteImport } from './routes/app.trades'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AppPortfolioRouteImport } from './routes/app.portfolio'
@@ -24,15 +32,32 @@ import { Route as AppFounderRouteImport } from './routes/app.founder'
 import { Route as AppBeginnerRouteImport } from './routes/app.beginner'
 import { Route as AppAnalyzeRouteImport } from './routes/app.analyze'
 import { Route as AppAccountRouteImport } from './routes/app.account'
+import { Route as AdminVideosRouteImport } from './routes/admin.videos'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTradesRouteImport } from './routes/admin.trades'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminPdfsRouteImport } from './routes/admin.pdfs'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
+import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -44,6 +69,36 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalRiskRoute = LegalRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalRefundRoute = LegalRefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalDisclaimerRoute = LegalDisclaimerRouteImport.update({
+  id: '/disclaimer',
+  path: '/disclaimer',
+  getParentRoute: () => LegalRoute,
 } as any)
 const AppTradesRoute = AppTradesRouteImport.update({
   id: '/trades',
@@ -100,11 +155,55 @@ const AppAccountRoute = AppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AppRoute,
 } as any)
+const AdminVideosRoute = AdminVideosRouteImport.update({
+  id: '/videos',
+  path: '/videos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTradesRoute = AdminTradesRouteImport.update({
+  id: '/trades',
+  path: '/trades',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPdfsRoute = AdminPdfsRouteImport.update({
+  id: '/pdfs',
+  path: '/pdfs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
+  id: '/announcements',
+  path: '/announcements',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/pdfs': typeof AdminPdfsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/trades': typeof AdminTradesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/videos': typeof AdminVideosRoute
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
   '/app/beginner': typeof AppBeginnerRoute
@@ -116,11 +215,25 @@ export interface FileRoutesByFullPath {
   '/app/portfolio': typeof AppPortfolioRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
+  '/legal/disclaimer': typeof LegalDisclaimerRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
+  '/legal/risk': typeof LegalRiskRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/pdfs': typeof AdminPdfsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/trades': typeof AdminTradesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/videos': typeof AdminVideosRoute
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
   '/app/beginner': typeof AppBeginnerRoute
@@ -132,13 +245,28 @@ export interface FileRoutesByTo {
   '/app/portfolio': typeof AppPortfolioRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
+  '/legal/disclaimer': typeof LegalDisclaimerRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
+  '/legal/risk': typeof LegalRiskRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/pdfs': typeof AdminPdfsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/trades': typeof AdminTradesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/videos': typeof AdminVideosRoute
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
   '/app/beginner': typeof AppBeginnerRoute
@@ -150,14 +278,29 @@ export interface FileRoutesById {
   '/app/portfolio': typeof AppPortfolioRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
+  '/legal/disclaimer': typeof LegalDisclaimerRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
+  '/legal/risk': typeof LegalRiskRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/app'
+    | '/legal'
     | '/login'
+    | '/admin/announcements'
+    | '/admin/payments'
+    | '/admin/pdfs'
+    | '/admin/settings'
+    | '/admin/trades'
+    | '/admin/users'
+    | '/admin/videos'
     | '/app/account'
     | '/app/analyze'
     | '/app/beginner'
@@ -169,11 +312,25 @@ export interface FileRouteTypes {
     | '/app/portfolio'
     | '/app/subscription'
     | '/app/trades'
+    | '/legal/disclaimer'
+    | '/legal/privacy'
+    | '/legal/refund'
+    | '/legal/risk'
+    | '/legal/terms'
+    | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/legal'
     | '/login'
+    | '/admin/announcements'
+    | '/admin/payments'
+    | '/admin/pdfs'
+    | '/admin/settings'
+    | '/admin/trades'
+    | '/admin/users'
+    | '/admin/videos'
     | '/app/account'
     | '/app/analyze'
     | '/app/beginner'
@@ -185,12 +342,27 @@ export interface FileRouteTypes {
     | '/app/portfolio'
     | '/app/subscription'
     | '/app/trades'
+    | '/legal/disclaimer'
+    | '/legal/privacy'
+    | '/legal/refund'
+    | '/legal/risk'
+    | '/legal/terms'
+    | '/admin'
     | '/app'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/app'
+    | '/legal'
     | '/login'
+    | '/admin/announcements'
+    | '/admin/payments'
+    | '/admin/pdfs'
+    | '/admin/settings'
+    | '/admin/trades'
+    | '/admin/users'
+    | '/admin/videos'
     | '/app/account'
     | '/app/analyze'
     | '/app/beginner'
@@ -202,12 +374,20 @@ export interface FileRouteTypes {
     | '/app/portfolio'
     | '/app/subscription'
     | '/app/trades'
+    | '/legal/disclaimer'
+    | '/legal/privacy'
+    | '/legal/refund'
+    | '/legal/risk'
+    | '/legal/terms'
+    | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
+  LegalRoute: typeof LegalRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -220,11 +400,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -240,6 +434,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/risk': {
+      id: '/legal/risk'
+      path: '/risk'
+      fullPath: '/legal/risk'
+      preLoaderRoute: typeof LegalRiskRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/refund': {
+      id: '/legal/refund'
+      path: '/refund'
+      fullPath: '/legal/refund'
+      preLoaderRoute: typeof LegalRefundRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/disclaimer': {
+      id: '/legal/disclaimer'
+      path: '/disclaimer'
+      fullPath: '/legal/disclaimer'
+      preLoaderRoute: typeof LegalDisclaimerRouteImport
+      parentRoute: typeof LegalRoute
     }
     '/app/trades': {
       id: '/app/trades'
@@ -318,8 +554,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountRouteImport
       parentRoute: typeof AppRoute
     }
+    '/admin/videos': {
+      id: '/admin/videos'
+      path: '/videos'
+      fullPath: '/admin/videos'
+      preLoaderRoute: typeof AdminVideosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/trades': {
+      id: '/admin/trades'
+      path: '/trades'
+      fullPath: '/admin/trades'
+      preLoaderRoute: typeof AdminTradesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/pdfs': {
+      id: '/admin/pdfs'
+      path: '/pdfs'
+      fullPath: '/admin/pdfs'
+      preLoaderRoute: typeof AdminPdfsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/announcements': {
+      id: '/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AdminAnnouncementsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
+  AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminPdfsRoute: typeof AdminPdfsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTradesRoute: typeof AdminTradesRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminVideosRoute: typeof AdminVideosRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnnouncementsRoute: AdminAnnouncementsRoute,
+  AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminPdfsRoute: AdminPdfsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminTradesRoute: AdminTradesRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminVideosRoute: AdminVideosRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
@@ -353,9 +662,29 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface LegalRouteChildren {
+  LegalDisclaimerRoute: typeof LegalDisclaimerRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalRefundRoute: typeof LegalRefundRoute
+  LegalRiskRoute: typeof LegalRiskRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+}
+
+const LegalRouteChildren: LegalRouteChildren = {
+  LegalDisclaimerRoute: LegalDisclaimerRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalRefundRoute: LegalRefundRoute,
+  LegalRiskRoute: LegalRiskRoute,
+  LegalTermsRoute: LegalTermsRoute,
+}
+
+const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
+  LegalRoute: LegalRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

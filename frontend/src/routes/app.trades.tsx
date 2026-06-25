@@ -1,185 +1,153 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { PageHeader } from "@/components/app/PageHeader";
-import { TradeCard, type Trade } from "@/components/app/TradeCard";
-import { Plus, Lock, Crown } from "lucide-react";
-import { usePlan } from "@/lib/auth";
-import { getAllowedTradeCategories, canAccessWealthCreator } from "@/lib/subscription";
-import { UpgradeGate } from "@/components/app/UpgradeGate";
-import type { PlanId } from "@/lib/subscription";
+import { AlertTriangle, Bell, CheckCircle, Loader2, BookOpen, TrendingUp, Shield, Clock } from "lucide-react";
+import { api, ApiError } from "@/lib/api";
 
 export const Route = createFileRoute("/app/trades")({
   component: TradesPage,
 });
 
-const CATS = ["Positional", "Swing", "Mid Term", "Long Term", "F&O", "Wealth Creator"] as const;
-type Cat = typeof CATS[number];
-
-/** Plan required to unlock each category */
-const CAT_PLAN: Record<Cat, PlanId> = {
-  "Positional":     "Starter",
-  "Swing":          "Starter",
-  "Mid Term":       "Premium",
-  "Long Term":      "Premium",
-  "F&O":            "Premium",
-  "Wealth Creator": "Founder",
-};
-
-const ALL: Trade[] = [
-  {
-    s: "RELIANCE", exch: "NSE • F&O", category: "F&O", side: "Bullish", setup: "Breakout",
-    entry: "2,945", t1: "2,985", t2: "3,020", sl: "2,922",
-    risk: "Low", potential: "+2.5%",
-    notes: "Breakout above prior swing high with rising volume. Volume confirming the move.",
-  },
-  {
-    s: "TATAMOTORS", exch: "NSE • Daily", category: "Swing", side: "Bullish", setup: "ATE",
-    entry: "968", t1: "1,005", t2: "1,040", sl: "948",
-    risk: "Medium", potential: "+7.4%",
-    notes: "After-Trend-Entry on daily with strong follow-through volume. Auto breadth supportive.",
-  },
-  {
-    s: "HDFCBANK", exch: "NSE • Daily", category: "Positional", side: "Bearish", setup: "Reversal",
-    entry: "1,648", t1: "1,612", t2: "1,580", sl: "1,672",
-    risk: "Medium", potential: "+4.1%",
-    notes: "Rejection from supply zone with weak follow-through. Banknifty heaviness adds confluence.",
-  },
-  {
-    s: "DIVISLAB", exch: "NSE • Weekly", category: "Mid Term", side: "Bullish", setup: "Pullback",
-    entry: "4,210", t1: "4,520", t2: "4,860", sl: "4,020",
-    risk: "Low", potential: "+15.4%",
-    notes: "Pullback into demand on weekly with rising relative strength vs Nifty Pharma.", premium: true,
-  },
-  {
-    s: "VBL", exch: "NSE • Weekly", category: "Long Term", side: "Bullish", setup: "Trend Continuation",
-    entry: "1,520", t1: "1,720", t2: "1,950", sl: "1,420",
-    risk: "Low", potential: "+28.3%",
-    notes: "Trend continuation post a clean higher-low structure. Premium valuation justified by FCF growth.", premium: true,
-  },
-  {
-    s: "KAYNES", exch: "NSE • Weekly", category: "Wealth Creator", side: "Bullish", setup: "ATE",
-    entry: "5,420", t1: "7,200", t2: "9,400", sl: "4,800",
-    risk: "High", potential: "+73.4%",
-    notes: "EMS sector tailwind + capacity expansion thesis. Position-size strictly per risk plan.", premium: true,
-  },
-  {
-    s: "JSWSTEEL", exch: "NSE • Daily", category: "Positional", side: "Bullish", setup: "Breakout",
-    entry: "918", t1: "962", t2: "1,005", sl: "892",
-    risk: "Medium", potential: "+9.4%",
-    notes: "Breakout from multi-week base on rising volumes. Metals sector turning.",
-  },
-  {
-    s: "TITAN", exch: "NSE • Daily", category: "Swing", side: "Bullish", setup: "Pullback",
-    entry: "3,420", t1: "3,540", t2: "3,680", sl: "3,360",
-    risk: "Low", potential: "+7.6%",
-    notes: "Healthy pullback to 50-DEMA. Consumption theme intact.",
-  },
-  {
-    s: "NIFTY", exch: "NSE • F&O", category: "F&O", side: "Bullish", setup: "Breakout",
-    entry: "17,500", t1: "18,200", t2: "18,900", sl: "17,200",
-    risk: "Medium", potential: "+6.0%",
-    notes: "Index breakout on strong open interest and momentum.",
-  },
-];
-
-function CategoryTabs({
-  active,
-  onChange,
-  allowed,
-}: {
-  active: Cat;
-  onChange: (c: Cat) => void;
-  allowed: Set<Cat>;
-}) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-card/60 p-2 flex items-center gap-1 overflow-x-auto">
-      {CATS.map((c) => {
-        const isAllowed = allowed.has(c);
-        const isActive = active === c;
-        const isFounderOnly = CAT_PLAN[c] === "Founder";
-        return (
-          <button
-            key={c}
-            onClick={() => onChange(c)}
-            className={`shrink-0 rounded-md px-3.5 py-1.5 text-xs font-semibold transition flex items-center gap-1.5 ${
-              isActive
-                ? "gold-gradient text-black"
-                : isAllowed
-                ? "text-white/70 hover:text-white hover:bg-white/5"
-                : "text-white/35 hover:bg-white/5 cursor-pointer"
-            }`}
-          >
-            {!isAllowed && (
-              isFounderOnly
-                ? <Crown className="h-3 w-3 shrink-0 text-amber-400" />
-                : <Lock className="h-3 w-3 shrink-0" />
-            )}
-            {c}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function TradesPage() {
-  const plan = usePlan();
-  const allowed = getAllowedTradeCategories(plan);
-  const isWealthCreatorAllowed = canAccessWealthCreator(plan);
+  const [email, setEmail]   = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
 
-  // Default to first accessible category
-  const defaultCat = allowed.has("Positional") ? "Positional" : CATS[0];
-  const [active, setActive] = useState<Cat>(defaultCat);
-
-  const handleTabChange = (c: Cat) => {
-    setActive(c);
+  const handleNotify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setMessage("Enter a valid email address");
+      setStatus("error");
+      return;
+    }
+    setStatus("loading");
+    try {
+      const res = await api.post<{ ok: boolean; message: string }>("/api/notify/subscribe", {
+        email,
+        feature: "trades",
+      });
+      setMessage(res.message);
+      setStatus("success");
+      setEmail("");
+    } catch (err) {
+      setMessage(err instanceof ApiError ? err.message : "Failed to subscribe. Try again.");
+      setStatus("error");
+    }
   };
 
-  // Check if current tab is locked
-  const isCurrentLocked = !allowed.has(active);
-  const requiredPlan = CAT_PLAN[active];
-
-  const visible = ALL.filter((t) => t.category === active);
-
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-      <PageHeader
-        eyebrow="Trade Ideas"
-        title="Daily research-led setups"
-        description="Filter by timeframe. Every idea ships with entry, two targets, stop loss and a documented thesis."
-        actions={
-          <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[var(--gold)]/40 text-[var(--gold)] text-xs font-semibold px-3 py-2 hover:bg-[var(--gold)]/5 transition">
-            <Plus className="h-3.5 w-3.5" /> Admin: Add Trade
-          </button>
-        }
-      />
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 fade-up">
 
-      <CategoryTabs active={active} onChange={handleTabChange} allowed={allowed} />
+      {/* Coming Soon Badge */}
+      <div className="flex justify-center mb-8">
+        <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-amber-400">
+          <Clock className="h-3.5 w-3.5" />
+          Coming Soon — SEBI Registration Pending
+        </span>
+      </div>
 
-      {isCurrentLocked ? (
-        <div className="mt-8">
-          <UpgradeGate
-            requiredPlan={requiredPlan}
-            feature={`${active} Trades`}
-            description={
-              active === "Wealth Creator"
-                ? "Wealth Creator is an exclusive Founder feature — long-duration, high-conviction ideas with 70%+ return potential."
-                : `${active} trade ideas are available from the ${requiredPlan} plan and above.`
-            }
-          />
+      {/* Main Content */}
+      <div className="text-center space-y-6 mb-12">
+        {/* Icon */}
+        <div className="mx-auto h-24 w-24 rounded-3xl bg-gradient-to-br from-[var(--gold)]/20 to-[var(--gold)]/5 border border-[var(--gold)]/20 flex items-center justify-center">
+          <TrendingUp className="h-12 w-12 text-[var(--gold)]" />
         </div>
-      ) : (
-        <div className="mt-5 grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {visible.length === 0 ? (
-            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-white/45">
-              No {active.toLowerCase()} setups posted yet. Check back soon.
+
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+            Trade Recommendations
+            <br />
+            <span className="gold-text">Launching Soon</span>
+          </h1>
+          <div className="mt-6 mx-auto max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-left space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-300 mb-1">Important Notice</p>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  Trade Recommendations will be available after completion of our <strong className="text-white/90">SEBI Registration process</strong>.
+                </p>
+                <p className="text-sm text-white/60 mt-3 leading-relaxed">
+                  Currently EquityMitra provides only <strong className="text-white/80">educational content</strong>, market research, investor awareness programs, and learning resources.
+                </p>
+                <p className="text-sm text-white/60 mt-3 leading-relaxed">
+                  Trade Recommendations will be launched soon after all regulatory requirements are met.
+                </p>
+              </div>
             </div>
-          ) : (
-            visible.map((t, i) => <TradeCard key={t.s + t.category} t={t} index={i} />)
-          )}
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* What's Coming */}
+      <div className="grid sm:grid-cols-3 gap-4 mb-12">
+        {[
+          {
+            icon: TrendingUp,
+            title: "Research-Led Setups",
+            desc: "Every trade idea backed by technical & fundamental analysis with entry, targets, and stop-loss.",
+          },
+          {
+            icon: Shield,
+            title: "Risk Management",
+            desc: "Strict position sizing guidelines, risk-reward ratios, and capital protection frameworks.",
+          },
+          {
+            icon: BookOpen,
+            title: "Educational Context",
+            desc: "Each setup explained with chart patterns, market context, and learning notes.",
+          },
+        ].map((item) => (
+          <div key={item.title} className="rounded-xl border border-white/10 bg-card/60 p-5 text-center">
+            <div className="mx-auto h-12 w-12 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center mb-3">
+              <item.icon className="h-6 w-6 text-[var(--gold)]" />
+            </div>
+            <h3 className="text-sm font-bold text-white mb-1.5">{item.title}</h3>
+            <p className="text-xs text-white/50 leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Notify Form */}
+      <div className="rounded-2xl border border-[var(--gold)]/20 bg-gradient-to-b from-[var(--gold)]/5 to-transparent p-8 text-center">
+        <Bell className="mx-auto h-8 w-8 text-[var(--gold)] mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">Get Notified at Launch</h2>
+        <p className="text-sm text-white/55 mb-6">
+          Be the first to access Trade Recommendations when we go live.
+        </p>
+
+        {status === "success" ? (
+          <div className="flex items-center justify-center gap-2 text-emerald-400 font-semibold text-sm">
+            <CheckCircle className="h-5 w-5" />
+            {message}
+          </div>
+        ) : (
+          <form onSubmit={handleNotify} className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="flex-1 rounded-lg border border-white/10 bg-card/60 px-4 py-3 text-sm text-white outline-none focus:border-[var(--gold)]/60 transition"
+            />
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="inline-flex items-center justify-center gap-2 rounded-lg gold-gradient text-black font-bold text-sm px-5 py-3 hover:opacity-90 disabled:opacity-60 transition whitespace-nowrap"
+            >
+              {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bell className="h-4 w-4" />}
+              Notify Me
+            </button>
+          </form>
+        )}
+
+        {status === "error" && (
+          <p className="mt-3 text-xs text-red-400">{message}</p>
+        )}
+
+        <p className="mt-6 text-[10px] text-white/25 leading-relaxed max-w-sm mx-auto">
+          EquityMitra is committed to full SEBI compliance. All investment research will be conducted by registered investment advisors only.
+        </p>
+      </div>
     </div>
   );
 }
-

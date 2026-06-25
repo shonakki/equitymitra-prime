@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Search, Bell, Menu, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { marketApi, useLiveQuote, type Quote } from "@/lib/marketApi";
+import { useRegion, type Region } from "@/lib/region";
 
 const FALLBACK_TICKERS = [
   { name: "NIFTY", value: "—", chg: "—", pct: "—", up: true },
@@ -76,6 +77,7 @@ function MarketStatus() {
 
 export function TopBar({ onMenu }: { onMenu: () => void }) {
   const { user } = useAuth();
+  const { region, setRegion } = useRegion();
   const { data: nifty } = useLiveQuote(marketApi.nifty, 5000);
   const { data: sensex } = useLiveQuote(marketApi.sensex, 5000);
   const { data: banknifty } = useLiveQuote(marketApi.banknifty, 5000);
@@ -125,12 +127,31 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         </div>
       </div>
 
+      {/* India / USA Toggle */}
+      <div className="flex items-center rounded-lg border border-white/10 bg-card/60 p-0.5 gap-0.5">
+        {(["IN", "US"] as Region[]).map((r) => (
+          <button
+            key={r}
+            onClick={() => setRegion(r)}
+            title={r === "IN" ? "India" : "USA"}
+            className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+              region === r
+                ? "gold-gradient text-black"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            {r === "IN" ? "🇮🇳" : "🇺🇸"}
+            <span className="hidden sm:inline">{r === "IN" ? "India" : "USA"}</span>
+          </button>
+        ))}
+      </div>
+
       <button className="relative text-white/60 hover:text-white" title="Notifications">
         <Bell className="h-4 w-4" />
         <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
       </button>
 
-      <div className="h-8 w-8 rounded-full gold-gradient grid place-items-center text-xs font-bold text-black" title={user?.phone}>
+      <div className="h-8 w-8 rounded-full gold-gradient grid place-items-center text-xs font-bold text-black" title={user?.phone ?? user?.email ?? "User"}>
         {user?.name?.[0] ?? "T"}
       </div>
     </header>

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { FileText, Download, Upload, FolderOpen, Search, Bookmark, BookmarkCheck, ArrowDownAZ, Clock, TrendingUp, Lock, X, Eye } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { useAuth, usePlan } from "@/lib/auth";
 import { getPlanMeta, getMonthsSinceJoined, canDownloadPdf, type PlanId } from "@/lib/subscription";
 import { UpgradeModal } from "@/components/app/UpgradeModal";

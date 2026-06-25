@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Gauge, ArrowUpRight, ArrowDownRight, Calendar, Activity, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { NiftyLiveCard, BankNiftyLiveCard } from "@/components/app/LiveIndexCard";
 import { marketApi, useLiveQuote } from "@/lib/marketApi";
 
@@ -51,6 +52,7 @@ function MarketPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
+      <DisclaimerBanner variant="compact" storageKey="em.disclaimer.market" />
       {/* Header with Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <PageHeader
