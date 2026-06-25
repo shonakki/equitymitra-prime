@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { fetchStockAnalysis, type StockAnalysisData } from "@/lib/stockAnalysis";
 import { usePlan, useAnalyzeUsage } from "@/lib/auth";
 import { canAccessAnalyze } from "@/lib/subscription";
@@ -187,6 +188,7 @@ function AnalyzeStockPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
+      <DisclaimerBanner variant="compact" storageKey="em.disclaimer.analyze" />
       <PageHeader
         eyebrow="Premium Research"
         title="Analyze Your Stock"

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Play, Clock, Lock, Sparkles, X, Tv } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { MiniChart } from "@/components/site/MiniChart";
 import { useAuth, usePlan } from "@/lib/auth";
 import { getPlanMeta, getMonthsSinceJoined, type PlanId } from "@/lib/subscription";
@@ -155,6 +156,7 @@ function LearningPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 relative">
+      <DisclaimerBanner variant="compact" storageKey="em.disclaimer.learning" />
       <PageHeader
         eyebrow="Learning"
         title="Video Academy"

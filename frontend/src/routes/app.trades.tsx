@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AlertTriangle, Bell, CheckCircle, Loader2, BookOpen, TrendingUp, Shield, Clock } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 
 export const Route = createFileRoute("/app/trades")({
   component: TradesPage,
@@ -36,6 +37,7 @@ function TradesPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 fade-up">
+      <DisclaimerBanner variant="compact" storageKey="em.disclaimer.trades" />
 
       {/* Coming Soon Badge */}
       <div className="flex justify-center mb-8">

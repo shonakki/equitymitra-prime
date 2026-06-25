@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Play, Clock, Lock, Sparkles, X, Tv, Crown, Check } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { useAuth, usePlan } from "@/lib/auth";
 import { getPlanMeta, type PlanId } from "@/lib/subscription";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
@@ -77,6 +78,7 @@ function FounderAcademyPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 relative space-y-8">
+      <DisclaimerBanner variant="compact" storageKey="em.disclaimer.founder" />
       {/* Premium Hero Section */}
       <section className="relative rounded-3xl border border-amber-500/35 bg-gradient-to-b from-slate-950 via-card/85 to-card/60 p-6 md:p-8 overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
