@@ -22,4 +22,8 @@ module.exports = {
     .filter(Boolean),
   frontendSharedSecret: process.env.FRONTEND_SHARED_SECRET || "",
   alphaVantageKey: process.env.ALPHA_VANTAGE_API_KEY || "",
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || "",
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.VITE_GOOGLE_CLIENT_SECRET || "",
+  },
 };

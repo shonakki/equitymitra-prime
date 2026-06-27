@@ -16,6 +16,8 @@ const db      = require("../db");
 const { signToken, hashToken } = require("../lib/jwt");
 const { sendOtp, sendEmailOtp } = require("../lib/sms");
 const requireAuth = require("../middleware/requireAuth");
+const config = require("../config");
+
 
 // ─── Admin phone list ─────────────────────────────────────────────────────────
 // Comma-separated phone numbers in ADMIN_PHONES env var
@@ -208,7 +210,7 @@ router.post("/google", async (req, res) => {
     if (!idToken) return res.status(400).json({ ok: false, error: "Google ID token required" });
 
     const { OAuth2Client } = require("google-auth-library");
-    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientId = config.google.clientId;
     if (!clientId) {
       return res.status(503).json({ ok: false, error: "Google login not configured on this server" });
     }
