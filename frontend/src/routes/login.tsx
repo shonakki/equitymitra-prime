@@ -5,6 +5,11 @@ import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { error?: string } => {
+    return {
+      error: search.error ? String(search.error) : undefined,
+    };
+  },
   component: LoginPage,
 });
 
@@ -27,6 +32,13 @@ function LoginPage() {
 
   const { loginWithToken } = useAuth();
   const navigate           = useNavigate();
+  const { error: searchError } = Route.useSearch();
+
+  useEffect(() => {
+    if (searchError) {
+      setError(searchError);
+    }
+  }, [searchError]);
 
   // Countdown timer for resend OTP
   useEffect(() => {
