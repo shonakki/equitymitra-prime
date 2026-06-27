@@ -16,7 +16,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as LoginGoogleCallbackRouteImport } from './routes/login.google-callback'
+import { Route as LoginGoogleCallbackRouteImport } from './routes/login_.google-callback'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalRiskRouteImport } from './routes/legal.risk'
 import { Route as LegalRefundRouteImport } from './routes/legal.refund'
@@ -77,9 +77,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const LoginGoogleCallbackRoute = LoginGoogleCallbackRouteImport.update({
-  id: '/google-callback',
-  path: '/google-callback',
-  getParentRoute: () => LoginRoute,
+  id: '/login_/google-callback',
+  path: '/login/google-callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
   id: '/terms',
@@ -202,7 +202,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
-  '/login': typeof LoginRouteWithChildren
+  '/login': typeof LoginRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
@@ -233,7 +233,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/legal': typeof LegalRouteWithChildren
-  '/login': typeof LoginRouteWithChildren
+  '/login': typeof LoginRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
@@ -267,7 +267,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
-  '/login': typeof LoginRouteWithChildren
+  '/login': typeof LoginRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
@@ -291,7 +291,7 @@ export interface FileRoutesById {
   '/legal/refund': typeof LegalRefundRoute
   '/legal/risk': typeof LegalRiskRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/login/google-callback': typeof LoginGoogleCallbackRoute
+  '/login_/google-callback': typeof LoginGoogleCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -390,7 +390,7 @@ export interface FileRouteTypes {
     | '/legal/refund'
     | '/legal/risk'
     | '/legal/terms'
-    | '/login/google-callback'
+    | '/login_/google-callback'
     | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -400,7 +400,8 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   LegalRoute: typeof LegalRouteWithChildren
-  LoginRoute: typeof LoginRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  LoginGoogleCallbackRoute: typeof LoginGoogleCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -454,12 +455,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/login/google-callback': {
-      id: '/login/google-callback'
-      path: '/google-callback'
+    '/login_/google-callback': {
+      id: '/login_/google-callback'
+      path: '/login/google-callback'
       fullPath: '/login/google-callback'
       preLoaderRoute: typeof LoginGoogleCallbackRouteImport
-      parentRoute: typeof LoginRoute
+      parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
       id: '/legal/terms'
@@ -699,22 +700,13 @@ const LegalRouteChildren: LegalRouteChildren = {
 
 const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 
-interface LoginRouteChildren {
-  LoginGoogleCallbackRoute: typeof LoginGoogleCallbackRoute
-}
-
-const LoginRouteChildren: LoginRouteChildren = {
-  LoginGoogleCallbackRoute: LoginGoogleCallbackRoute,
-}
-
-const LoginRouteWithChildren = LoginRoute._addFileChildren(LoginRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   LegalRoute: LegalRouteWithChildren,
-  LoginRoute: LoginRouteWithChildren,
+  LoginRoute: LoginRoute,
+  LoginGoogleCallbackRoute: LoginGoogleCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

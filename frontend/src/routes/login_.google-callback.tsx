@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/login/google-callback")({
+export const Route = createFileRoute("/login_/google-callback")({
   component: GoogleCallbackPage,
 });
 
