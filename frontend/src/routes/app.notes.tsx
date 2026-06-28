@@ -45,7 +45,7 @@ const SORTS: Sort[] = ["Recent", "Downloads", "A–Z"];
 
 function NotesPage() {
   const plan = usePlan();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   // Upgrade Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -200,28 +200,30 @@ function NotesPage() {
       )}
 
       {/* Upload area (admin placeholder) */}
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => { e.preventDefault(); onFiles(e.dataTransfer.files); }}
-        className="rounded-xl border border-dashed border-[var(--gold)]/40 bg-[var(--gold)]/5 p-6 text-center hover:bg-[var(--gold)]/10 transition cursor-pointer"
-        onClick={() => inputRef.current?.click()}
-      >
-        <Upload className="h-6 w-6 text-[var(--gold)] mx-auto" />
-        <p className="mt-2 text-sm text-white font-semibold">Drop PDFs here or click to upload</p>
-        <p className="text-[11px] text-white/45 mt-0.5">
-          Admin panel placeholder — connect storage to persist uploads.
-        </p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="application/pdf"
-          multiple
-          className="hidden"
-          onChange={(e) => onFiles(e.target.files)}
-        />
-      </div>
+      {isAdmin && (
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); onFiles(e.dataTransfer.files); }}
+          className="rounded-xl border border-dashed border-[var(--gold)]/40 bg-[var(--gold)]/5 p-6 text-center hover:bg-[var(--gold)]/10 transition cursor-pointer"
+          onClick={() => inputRef.current?.click()}
+        >
+          <Upload className="h-6 w-6 text-[var(--gold)] mx-auto" />
+          <p className="mt-2 text-sm text-white font-semibold">Drop PDFs here or click to upload</p>
+          <p className="text-[11px] text-white/45 mt-0.5">
+            Admin panel placeholder — connect storage to persist uploads.
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="application/pdf"
+            multiple
+            className="hidden"
+            onChange={(e) => onFiles(e.target.files)}
+          />
+        </div>
+      )}
 
-      {uploaded.length > 0 && (
+      {isAdmin && uploaded.length > 0 && (
         <div className="mt-4 rounded-xl border border-white/10 bg-card/60 p-4">
           <p className="text-[11px] uppercase tracking-wider text-[var(--gold)] mb-2">Recently uploaded (session)</p>
           <ul className="space-y-1.5">

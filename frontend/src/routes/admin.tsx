@@ -27,8 +27,12 @@ function AdminLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
-    if (!user) { navigate({ to: "/login" }); return; }
-    if (!isAdmin) { navigate({ to: "/app/market" }); }
+    // Client-side gate. Auth state hydrates from localStorage on mount.
+    const t = setTimeout(() => {
+      if (!user) { navigate({ to: "/login" }); return; }
+      if (!isAdmin) { navigate({ to: "/app/market" }); }
+    }, 50);
+    return () => clearTimeout(t);
   }, [user, isAdmin, navigate]);
 
   if (!user || !isAdmin) return null;
