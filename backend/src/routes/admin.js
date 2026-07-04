@@ -244,6 +244,13 @@ router.use("/videos",        crudRouter("videos_cms",   ["title","description","
 router.use("/pdfs",          crudRouter("pdfs_cms",     ["title","description","url","category","required_plan","release_month","sort_order","status"]));
 router.use("/announcements", crudRouter("announcements",["title","content","type","status"]));
 
+// ─── Research Hub CMS ────────────────────────────────────────────────────────
+router.use("/chart-studies",   crudRouter("chart_studies_cms",   ["title","summary","cover_image","content_url","publish_date","status"]));
+router.use("/research-reports",crudRouter("research_reports_cms",["title","company","category","cover_image","read_url","publish_date","status"]));
+router.use("/ipo-research",    crudRouter("ipo_research_cms",    ["ipo_name","industry","issue_size","open_date","listing_date","summary","read_url","publish_date","status"]));
+router.use("/sector-research", crudRouter("sector_research_cms", ["sector_name","sector_image","summary","read_url","publish_date","status"]));
+router.use("/premium-research",crudRouter("premium_research_cms",["title","company","summary","preview_text","estimated_read_time","cover_image","pdf_url","price","publish_date","display_order","is_featured","status"]));
+
 // ─── Settings: notify emails list ─────────────────────────────────────────────
 router.get("/notify-emails", (req, res) => {
   try {

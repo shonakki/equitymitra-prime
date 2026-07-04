@@ -17,6 +17,7 @@ const NAV: NavItem[] = [
   { label: "Markets",          to: "/app/market",       icon: LineChart },
   { label: "Analyze Your Stock", to: "/app/analyze",   icon: Search },
   { label: "Trade",            to: "/app/trades",       icon: TrendingUp },
+  { label: "Research Hub",     to: "/app/research-hub", icon: BookOpen },
   { label: "Portfolio Tracker",to: "/app/portfolio",    icon: Briefcase },
   { label: "Past Performance", to: "/app/performance",  icon: History },
   { label: "Learning Videos",  to: "/app/learning",     icon: GraduationCap },

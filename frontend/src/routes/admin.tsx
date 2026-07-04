@@ -3,7 +3,8 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   LayoutDashboard, Users, CreditCard, TrendingUp,
-  Video, FileText, Megaphone, Settings, LogOut, ShieldCheck
+  Video, FileText, Megaphone, Settings, LogOut, ShieldCheck,
+  BookOpen, PieChart, BarChart2, Briefcase, Star
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -17,6 +18,11 @@ const NAV_ITEMS = [
   { to: "/admin/trades",       label: "Trades CMS",    icon: TrendingUp },
   { to: "/admin/videos",       label: "Videos CMS",    icon: Video },
   { to: "/admin/pdfs",         label: "PDFs CMS",      icon: FileText },
+  { to: "/admin/chart-studies",label: "Chart Studies", icon: BarChart2 },
+  { to: "/admin/research-reports", label: "Research Reports", icon: BookOpen },
+  { to: "/admin/ipo-research", label: "IPO Research",  icon: Briefcase },
+  { to: "/admin/sector-research", label: "Sector Research", icon: PieChart },
+  { to: "/admin/premium-research", label: "Premium Research", icon: Star },
   { to: "/admin/announcements",label: "Announcements", icon: Megaphone },
   { to: "/admin/settings",     label: "Settings",      icon: Settings },
 ];

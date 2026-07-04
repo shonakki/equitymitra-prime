@@ -148,6 +148,88 @@ db.exec(`
     created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 
+  -- CMS: Research Hub (Free)
+  CREATE TABLE IF NOT EXISTS chart_studies_cms (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    title         TEXT    NOT NULL,
+    summary       TEXT,
+    cover_image   TEXT,
+    content_url   TEXT,
+    publish_date  TEXT,
+    status        TEXT    NOT NULL DEFAULT 'draft',
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS research_reports_cms (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    title         TEXT    NOT NULL,
+    company       TEXT,
+    category      TEXT,
+    cover_image   TEXT,
+    read_url      TEXT,
+    publish_date  TEXT,
+    status        TEXT    NOT NULL DEFAULT 'draft',
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS ipo_research_cms (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    ipo_name      TEXT    NOT NULL,
+    industry      TEXT,
+    issue_size    TEXT,
+    open_date     TEXT,
+    listing_date  TEXT,
+    summary       TEXT,
+    read_url      TEXT,
+    publish_date  TEXT,
+    status        TEXT    NOT NULL DEFAULT 'draft',
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS sector_research_cms (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    sector_name   TEXT    NOT NULL,
+    sector_image  TEXT,
+    summary       TEXT,
+    read_url      TEXT,
+    publish_date  TEXT,
+    status        TEXT    NOT NULL DEFAULT 'draft',
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- CMS: Premium Research
+  CREATE TABLE IF NOT EXISTS premium_research_cms (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    title               TEXT    NOT NULL,
+    company             TEXT,
+    summary             TEXT,
+    preview_text        TEXT,
+    estimated_read_time TEXT,
+    cover_image         TEXT,
+    pdf_url             TEXT,
+    price               INTEGER NOT NULL DEFAULT 99,
+    publish_date        TEXT,
+    display_order       INTEGER NOT NULL DEFAULT 0,
+    is_featured         INTEGER NOT NULL DEFAULT 0,
+    status              TEXT    NOT NULL DEFAULT 'draft',
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at          TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Premium Report Purchases Ownership Table
+  CREATE TABLE IF NOT EXISTS premium_purchases (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id             INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    report_id           INTEGER NOT NULL REFERENCES premium_research_cms(id) ON DELETE CASCADE,
+    razorpay_order_id   TEXT,
+    purchased_at        TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(user_id, report_id)
+  );
+
   -- Indexes
   CREATE INDEX IF NOT EXISTS idx_otps_identifier  ON otps(identifier);
   CREATE INDEX IF NOT EXISTS idx_sessions_user    ON user_sessions(user_id);

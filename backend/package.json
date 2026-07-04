@@ -24,6 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
     "otplib": "^12.0.1",
+    "pdf-lib": "^1.17.1",
     "razorpay": "^2.9.6",
     "smartapi-javascript": "^1.0.22",
     "ws": "^8.18.0"

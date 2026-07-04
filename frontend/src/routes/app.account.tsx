@@ -98,6 +98,11 @@ function AccountPage() {
             </div>
           </div>
 
+          <div className="rounded-xl border border-white/10 bg-card/60 p-5">
+            <h3 className="text-sm font-semibold text-white mb-3">Purchased Research</h3>
+            <PurchasedResearchList />
+          </div>
+
           <button
             onClick={handleLogout}
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-semibold py-2.5 hover:bg-red-500/20 transition"
@@ -106,6 +111,61 @@ function AccountPage() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+import { useState, useEffect } from "react";
+import { api, getToken } from "@/lib/api";
+
+function PurchasedResearchList() {
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get<{ ok: boolean; data: any[] }>("/api/research/purchased")
+      .then(res => setReports(res.data))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const getDownloadUrl = (reportId: number) => {
+    const base = import.meta.env.VITE_API_BASE as string || "https://equitymitra-prime-production.up.railway.app";
+    return `${base}/api/research/premium/${reportId}/download?token=${getToken() || ""}`;
+  };
+
+  if (loading) {
+    return <div className="text-xs text-white/50 py-4 text-center">Loading purchases…</div>;
+  }
+
+  if (reports.length === 0) {
+    return <div className="text-xs text-white/40 py-4 text-center">No reports purchased yet.</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {reports.map((report) => (
+        <div key={report.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+          <div className="flex items-center gap-3">
+            {report.cover_image && <img src={report.cover_image} alt={report.title} className="h-10 w-10 object-cover rounded" />}
+            <div>
+              <p className="text-[10px] font-black uppercase text-amber-500 tracking-wider">{report.company}</p>
+              <h4 className="text-xs font-bold text-white leading-tight">{report.title}</h4>
+              <p className="text-[9px] text-white/40 mt-0.5">Purchased on: {fmtDate(report.purchased_at)}</p>
+            </div>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <a
+              href={getDownloadUrl(report.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 sm:flex-none text-center inline-flex items-center justify-center gap-1 bg-[var(--gold)] text-black text-[11px] font-bold px-3 py-1.5 rounded hover:opacity-90 transition"
+            >
+              <Download className="h-3 w-3" /> Download PDF
+            </a>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

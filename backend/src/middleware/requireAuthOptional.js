@@ -4,10 +4,11 @@ const { verifyToken, hashToken } = require("../lib/jwt");
 const db = require("../db");
 
 /**
- * Express middleware — requires a valid JWT Bearer token.
- * Attaches decoded payload as req.user.
+ * Express middleware — checks for a valid JWT Bearer token optionally.
+ * If valid, attaches decoded payload as req.user.
+ * If missing or invalid, proceeds without failing.
  */
-function requireAuth(req, res, next) {
+function requireAuthOptional(req, res, next) {
   try {
     const header = req.headers["authorization"] || "";
     let token  = header.startsWith("Bearer ") ? header.slice(7) : null;
@@ -16,27 +17,27 @@ function requireAuth(req, res, next) {
     }
 
     if (!token) {
-      return res.status(401).json({ ok: false, error: "Authentication required" });
+      return next();
     }
 
     const payload = verifyToken(token);
 
-    // Check session is still valid in DB (allows server-side logout)
+    // Check session in DB
     const tokenHash = hashToken(token);
     const now       = new Date().toISOString();
     const session   = db
       .prepare("SELECT id FROM user_sessions WHERE token_hash = ? AND expires_at > ?")
       .get(tokenHash, now);
 
-    if (!session) {
-      return res.status(401).json({ ok: false, error: "Session expired. Please log in again." });
+    if (session) {
+      req.user = payload;
     }
-
-    req.user = payload;
+    
     next();
   } catch (err) {
-    return res.status(401).json({ ok: false, error: "Invalid or expired token" });
+    // Fail silently in optional auth
+    next();
   }
 }
 
-module.exports = requireAuth;
+module.exports = requireAuthOptional;

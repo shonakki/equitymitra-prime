@@ -24,6 +24,7 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalDisclaimerRouteImport } from './routes/legal.disclaimer'
 import { Route as AppTradesRouteImport } from './routes/app.trades'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
+import { Route as AppResearchHubRouteImport } from './routes/app.research-hub'
 import { Route as AppPortfolioRouteImport } from './routes/app.portfolio'
 import { Route as AppPerformanceRouteImport } from './routes/app.performance'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
@@ -38,8 +39,13 @@ import { Route as AdminVideosRouteImport } from './routes/admin.videos'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTradesRouteImport } from './routes/admin.trades'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminSectorResearchRouteImport } from './routes/admin.sector-research'
+import { Route as AdminResearchReportsRouteImport } from './routes/admin.research-reports'
+import { Route as AdminPremiumResearchRouteImport } from './routes/admin.premium-research'
 import { Route as AdminPdfsRouteImport } from './routes/admin.pdfs'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
+import { Route as AdminIpoResearchRouteImport } from './routes/admin.ipo-research'
+import { Route as AdminChartStudiesRouteImport } from './routes/admin.chart-studies'
 import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 
 const LoginRoute = LoginRouteImport.update({
@@ -117,6 +123,11 @@ const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
   path: '/subscription',
   getParentRoute: () => AppRoute,
 } as any)
+const AppResearchHubRoute = AppResearchHubRouteImport.update({
+  id: '/research-hub',
+  path: '/research-hub',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPortfolioRoute = AppPortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
@@ -187,6 +198,21 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSectorResearchRoute = AdminSectorResearchRouteImport.update({
+  id: '/sector-research',
+  path: '/sector-research',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminResearchReportsRoute = AdminResearchReportsRouteImport.update({
+  id: '/research-reports',
+  path: '/research-reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPremiumResearchRoute = AdminPremiumResearchRouteImport.update({
+  id: '/premium-research',
+  path: '/premium-research',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPdfsRoute = AdminPdfsRouteImport.update({
   id: '/pdfs',
   path: '/pdfs',
@@ -195,6 +221,16 @@ const AdminPdfsRoute = AdminPdfsRouteImport.update({
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIpoResearchRoute = AdminIpoResearchRouteImport.update({
+  id: '/ipo-research',
+  path: '/ipo-research',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChartStudiesRoute = AdminChartStudiesRouteImport.update({
+  id: '/chart-studies',
+  path: '/chart-studies',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
@@ -210,8 +246,13 @@ export interface FileRoutesByFullPath {
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/chart-studies': typeof AdminChartStudiesRoute
+  '/admin/ipo-research': typeof AdminIpoResearchRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
+  '/admin/premium-research': typeof AdminPremiumResearchRoute
+  '/admin/research-reports': typeof AdminResearchReportsRoute
+  '/admin/sector-research': typeof AdminSectorResearchRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/trades': typeof AdminTradesRoute
   '/admin/users': typeof AdminUsersRoute
@@ -226,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
+  '/app/research-hub': typeof AppResearchHubRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
   '/legal/disclaimer': typeof LegalDisclaimerRoute
@@ -242,8 +284,13 @@ export interface FileRoutesByTo {
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/chart-studies': typeof AdminChartStudiesRoute
+  '/admin/ipo-research': typeof AdminIpoResearchRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
+  '/admin/premium-research': typeof AdminPremiumResearchRoute
+  '/admin/research-reports': typeof AdminResearchReportsRoute
+  '/admin/sector-research': typeof AdminSectorResearchRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/trades': typeof AdminTradesRoute
   '/admin/users': typeof AdminUsersRoute
@@ -258,6 +305,7 @@ export interface FileRoutesByTo {
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
+  '/app/research-hub': typeof AppResearchHubRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
   '/legal/disclaimer': typeof LegalDisclaimerRoute
@@ -277,8 +325,13 @@ export interface FileRoutesById {
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/chart-studies': typeof AdminChartStudiesRoute
+  '/admin/ipo-research': typeof AdminIpoResearchRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
+  '/admin/premium-research': typeof AdminPremiumResearchRoute
+  '/admin/research-reports': typeof AdminResearchReportsRoute
+  '/admin/sector-research': typeof AdminSectorResearchRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/trades': typeof AdminTradesRoute
   '/admin/users': typeof AdminUsersRoute
@@ -293,6 +346,7 @@ export interface FileRoutesById {
   '/app/notes': typeof AppNotesRoute
   '/app/performance': typeof AppPerformanceRoute
   '/app/portfolio': typeof AppPortfolioRoute
+  '/app/research-hub': typeof AppResearchHubRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/trades': typeof AppTradesRoute
   '/legal/disclaimer': typeof LegalDisclaimerRoute
@@ -313,8 +367,13 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/admin/announcements'
+    | '/admin/chart-studies'
+    | '/admin/ipo-research'
     | '/admin/payments'
     | '/admin/pdfs'
+    | '/admin/premium-research'
+    | '/admin/research-reports'
+    | '/admin/sector-research'
     | '/admin/settings'
     | '/admin/trades'
     | '/admin/users'
@@ -329,6 +388,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
+    | '/app/research-hub'
     | '/app/subscription'
     | '/app/trades'
     | '/legal/disclaimer'
@@ -345,8 +405,13 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/admin/announcements'
+    | '/admin/chart-studies'
+    | '/admin/ipo-research'
     | '/admin/payments'
     | '/admin/pdfs'
+    | '/admin/premium-research'
+    | '/admin/research-reports'
+    | '/admin/sector-research'
     | '/admin/settings'
     | '/admin/trades'
     | '/admin/users'
@@ -361,6 +426,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
+    | '/app/research-hub'
     | '/app/subscription'
     | '/app/trades'
     | '/legal/disclaimer'
@@ -379,8 +445,13 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/admin/announcements'
+    | '/admin/chart-studies'
+    | '/admin/ipo-research'
     | '/admin/payments'
     | '/admin/pdfs'
+    | '/admin/premium-research'
+    | '/admin/research-reports'
+    | '/admin/sector-research'
     | '/admin/settings'
     | '/admin/trades'
     | '/admin/users'
@@ -395,6 +466,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/performance'
     | '/app/portfolio'
+    | '/app/research-hub'
     | '/app/subscription'
     | '/app/trades'
     | '/legal/disclaimer'
@@ -523,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSubscriptionRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/research-hub': {
+      id: '/app/research-hub'
+      path: '/research-hub'
+      fullPath: '/app/research-hub'
+      preLoaderRoute: typeof AppResearchHubRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/portfolio': {
       id: '/app/portfolio'
       path: '/portfolio'
@@ -621,6 +700,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/sector-research': {
+      id: '/admin/sector-research'
+      path: '/sector-research'
+      fullPath: '/admin/sector-research'
+      preLoaderRoute: typeof AdminSectorResearchRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/research-reports': {
+      id: '/admin/research-reports'
+      path: '/research-reports'
+      fullPath: '/admin/research-reports'
+      preLoaderRoute: typeof AdminResearchReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/premium-research': {
+      id: '/admin/premium-research'
+      path: '/premium-research'
+      fullPath: '/admin/premium-research'
+      preLoaderRoute: typeof AdminPremiumResearchRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/pdfs': {
       id: '/admin/pdfs'
       path: '/pdfs'
@@ -635,6 +735,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPaymentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/ipo-research': {
+      id: '/admin/ipo-research'
+      path: '/ipo-research'
+      fullPath: '/admin/ipo-research'
+      preLoaderRoute: typeof AdminIpoResearchRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/chart-studies': {
+      id: '/admin/chart-studies'
+      path: '/chart-studies'
+      fullPath: '/admin/chart-studies'
+      preLoaderRoute: typeof AdminChartStudiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/announcements': {
       id: '/admin/announcements'
       path: '/announcements'
@@ -647,8 +761,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
+  AdminChartStudiesRoute: typeof AdminChartStudiesRoute
+  AdminIpoResearchRoute: typeof AdminIpoResearchRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminPdfsRoute: typeof AdminPdfsRoute
+  AdminPremiumResearchRoute: typeof AdminPremiumResearchRoute
+  AdminResearchReportsRoute: typeof AdminResearchReportsRoute
+  AdminSectorResearchRoute: typeof AdminSectorResearchRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTradesRoute: typeof AdminTradesRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -658,8 +777,13 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnnouncementsRoute: AdminAnnouncementsRoute,
+  AdminChartStudiesRoute: AdminChartStudiesRoute,
+  AdminIpoResearchRoute: AdminIpoResearchRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminPdfsRoute: AdminPdfsRoute,
+  AdminPremiumResearchRoute: AdminPremiumResearchRoute,
+  AdminResearchReportsRoute: AdminResearchReportsRoute,
+  AdminSectorResearchRoute: AdminSectorResearchRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTradesRoute: AdminTradesRoute,
   AdminUsersRoute: AdminUsersRoute,
@@ -680,6 +804,7 @@ interface AppRouteChildren {
   AppNotesRoute: typeof AppNotesRoute
   AppPerformanceRoute: typeof AppPerformanceRoute
   AppPortfolioRoute: typeof AppPortfolioRoute
+  AppResearchHubRoute: typeof AppResearchHubRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
   AppTradesRoute: typeof AppTradesRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -696,6 +821,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNotesRoute: AppNotesRoute,
   AppPerformanceRoute: AppPerformanceRoute,
   AppPortfolioRoute: AppPortfolioRoute,
+  AppResearchHubRoute: AppResearchHubRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
   AppTradesRoute: AppTradesRoute,
   AppIndexRoute: AppIndexRoute,

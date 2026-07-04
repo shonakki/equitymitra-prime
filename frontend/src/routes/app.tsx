@@ -38,10 +38,10 @@ function AppLayoutContent({
   useEffect(() => {
     // Client-side gate. Auth state hydrates from localStorage on mount.
     const t = setTimeout(() => {
-      if (!isAuthed) navigate({ to: "/login" });
+      if (!isAuthed && pathname !== "/app/research-hub") navigate({ to: "/login" });
     }, 50);
     return () => clearTimeout(t);
-  }, [isAuthed, navigate]);
+  }, [isAuthed, navigate, pathname]);
 
   useEffect(() => {
     if (region === "US") {
@@ -73,7 +73,7 @@ function AppLayoutContent({
     }
   }, [region, pathname, navigate]);
 
-  if (!isAuthed) {
+  if (!isAuthed && pathname !== "/app/research-hub") {
     return (
       <div className="min-h-screen grid place-items-center bg-background text-white/60 text-sm">
         Loading Login…

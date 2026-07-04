@@ -126,3 +126,70 @@ export async function initiatePayment(
     });
   }
 }
+
+export async function initiateReportPayment(
+  reportId: number,
+  user: { name: string; phone?: string | null; email?: string | null },
+  onUpdate: (result: PaymentResult & { reportId?: number }) => void,
+): Promise<void> {
+  try {
+    const order = await api.post<{
+      ok: boolean;
+      orderId: string;
+      keyId: string;
+      amount: number;
+      currency: string;
+      planLabel: string;
+    }>("/api/payment/create-report-order", { reportId });
+
+    await loadRazorpayScript();
+
+    const rzp = new window.Razorpay({
+      key:         order.keyId,
+      amount:      order.amount,
+      currency:    order.currency,
+      name:        "EquityMitra",
+      description: order.planLabel,
+      order_id:    order.orderId,
+      prefill: {
+        name:    user.name,
+        contact: user.phone ? `+91${user.phone}` : undefined,
+        email:   user.email || undefined,
+      },
+      theme: { color: "#d4af37" },
+      modal: {
+        ondismiss: () => {
+          onUpdate({ success: false, error: "Payment cancelled" });
+        },
+      },
+      handler: async (response: RazorpayResponse) => {
+        try {
+          const verified = await api.post<{
+            ok: boolean;
+            reportId: number;
+            message: string;
+          }>("/api/payment/verify", {
+            razorpay_order_id:   response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature:  response.razorpay_signature,
+          });
+
+          onUpdate({ success: true, reportId: verified.reportId });
+        } catch (err) {
+          onUpdate({
+            success: false,
+            error:   err instanceof ApiError ? err.message : "Payment verification failed",
+          });
+        }
+      },
+    });
+
+    rzp.open();
+  } catch (err) {
+    onUpdate({
+      success: false,
+      error:   err instanceof ApiError ? err.message : "Failed to initiate payment",
+    });
+  }
+}
+

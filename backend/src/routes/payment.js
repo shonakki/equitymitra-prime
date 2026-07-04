@@ -82,6 +82,49 @@ router.post("/create-order", requireAuth, async (req, res) => {
   }
 });
 
+// ─── POST /api/payment/create-report-order ────────────────────────────────────
+router.post("/create-report-order", requireAuth, async (req, res) => {
+  try {
+    const { reportId } = req.body;
+    if (!reportId) return res.status(400).json({ ok: false, error: "Missing report ID" });
+
+    // Fetch report price
+    const report = db.prepare("SELECT * FROM premium_research_cms WHERE id = ?").get(reportId);
+    if (!report) return res.status(404).json({ ok: false, error: "Report not found" });
+
+    const razorpay = getRazorpay();
+    const amountInPaise = report.price * 100;
+
+    const order = await razorpay.orders.create({
+      amount:   amountInPaise,
+      currency: "INR",
+      receipt:  `em_rep_${req.user.sub}_${Date.now()}`,
+      notes: {
+        userId:  String(req.user.sub),
+        planId: `report_${report.id}`,
+        planLabel: `Premium Report: ${report.title}`,
+      },
+    });
+
+    db.prepare(
+      `INSERT INTO payments (user_id, razorpay_order_id, plan, amount, currency, status)
+       VALUES (?, ?, ?, ?, ?, 'created')`
+    ).run(req.user.sub, order.id, `report_${report.id}`, amountInPaise, "INR");
+
+    res.json({
+      ok:      true,
+      orderId: order.id,
+      keyId:   process.env.RAZORPAY_KEY_ID,
+      amount:  amountInPaise,
+      currency: "INR",
+      planLabel: `Premium Report: ${report.title}`,
+    });
+  } catch (err) {
+    console.error("[payment/create-report-order]", err);
+    res.status(500).json({ ok: false, error: "Failed to create report payment order" });
+  }
+});
+
 // ─── POST /api/payment/verify ─────────────────────────────────────────────────
 router.post("/verify", requireAuth, async (req, res) => {
   try {
@@ -130,35 +173,54 @@ router.post("/verify", requireAuth, async (req, res) => {
        WHERE id = ?`
     ).run(razorpay_payment_id, razorpay_signature, payment.id);
 
-    // Activate plan on user
-    db.prepare(
-      "UPDATE users SET plan = ?, updated_at = datetime('now') WHERE id = ?"
-    ).run(payment.plan, req.user.sub);
+    // Activate plan on user or unlock report
+    if (payment.plan.startsWith("report_")) {
+      const reportId = parseInt(payment.plan.replace("report_", ""), 10);
+      try {
+        db.prepare(
+          "INSERT INTO premium_purchases (user_id, report_id, razorpay_order_id) VALUES (?, ?, ?)"
+        ).run(req.user.sub, reportId, razorpay_order_id);
+      } catch (e) {
+        if (!e.message.includes("UNIQUE constraint")) throw e;
+      }
+      console.log(`[payment] User ${req.user.sub} purchased report: ${reportId}`);
+      
+      // Do NOT issue new token since plan didn't change
+      return res.json({
+        ok: true,
+        reportId,
+        message: "Report unlocked successfully"
+      });
+    } else {
+      db.prepare(
+        "UPDATE users SET plan = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(payment.plan, req.user.sub);
 
-    // Issue fresh JWT with updated plan
-    const updatedUser = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.sub);
-    const newToken    = signToken(updatedUser);
+      // Issue fresh JWT with updated plan
+      const updatedUser = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.sub);
+      const newToken    = signToken(updatedUser);
 
-    // Create new session for the new token
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    db.prepare(
-      "INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)"
-    ).run(updatedUser.id, hashToken(newToken), expiresAt);
+      // Create new session for the new token
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      db.prepare(
+        "INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)"
+      ).run(updatedUser.id, hashToken(newToken), expiresAt);
 
-    console.log(`[payment] User ${req.user.sub} activated plan: ${payment.plan}`);
+      console.log(`[payment] User ${req.user.sub} activated plan: ${payment.plan}`);
 
-    res.json({
-      ok:    true,
-      token: newToken,
-      plan:  payment.plan,
-      user: {
-        id:    updatedUser.id,
-        phone: updatedUser.phone,
-        email: updatedUser.email,
-        name:  updatedUser.name,
-        plan:  updatedUser.plan,
-      },
-    });
+      res.json({
+        ok:    true,
+        token: newToken,
+        plan:  payment.plan,
+        user: {
+          id:    updatedUser.id,
+          phone: updatedUser.phone,
+          email: updatedUser.email,
+          name:  updatedUser.name,
+          plan:  updatedUser.plan,
+        },
+      });
+    }
   } catch (err) {
     console.error("[payment/verify]", err);
     res.status(500).json({ ok: false, error: "Payment verification failed" });
