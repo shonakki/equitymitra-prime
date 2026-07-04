@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { Search, Bell, Menu, TrendingUp, TrendingDown, Clock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, Menu, TrendingUp, TrendingDown, Clock, User, CreditCard, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { marketApi, useLiveQuote, type Quote } from "@/lib/marketApi";
 import { useRegion, type Region } from "@/lib/region";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 const FALLBACK_TICKERS = [
   { name: "NIFTY", value: "—", chg: "—", pct: "—", up: true },
@@ -75,12 +76,88 @@ function MarketStatus() {
   );
 }
 
+function ProfileMenu({ user, onClose }: { user: { name?: string; email?: string | null; phone?: string | null } | null; onClose: () => void }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    onClose();
+    navigate({ to: "/" });
+  };
+
+  return (
+    <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-white/10 bg-[#1a1a1a] shadow-2xl overflow-hidden z-50">
+      {/* User info */}
+      <div className="px-4 py-3 border-b border-white/10">
+        <p className="text-xs font-semibold text-white truncate">{user?.name ?? "Member"}</p>
+        <p className="text-[11px] text-white/45 truncate">{user?.email ?? user?.phone ?? ""}</p>
+      </div>
+
+      {/* Menu items */}
+      <div className="py-1">
+        <Link
+          to="/app/account"
+          onClick={onClose}
+          className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/75 hover:bg-white/5 hover:text-white transition"
+        >
+          <User className="h-4 w-4 text-[var(--gold)]" />
+          My Profile
+        </Link>
+        <Link
+          to="/app/subscription"
+          onClick={onClose}
+          className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/75 hover:bg-white/5 hover:text-white transition"
+        >
+          <CreditCard className="h-4 w-4 text-[var(--gold)]" />
+          My Subscription
+        </Link>
+        <Link
+          to="/app/account"
+          onClick={onClose}
+          className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/75 hover:bg-white/5 hover:text-white transition"
+        >
+          <Settings className="h-4 w-4 text-[var(--gold)]" />
+          Settings
+        </Link>
+      </div>
+
+      {/* Logout */}
+      <div className="py-1 border-t border-white/10">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function TopBar({ onMenu }: { onMenu: () => void }) {
   const { user } = useAuth();
   const { region, setRegion } = useRegion();
   const { data: nifty } = useLiveQuote(marketApi.nifty, 5000);
   const { data: sensex } = useLiveQuote(marketApi.sensex, 5000);
   const { data: banknifty } = useLiveQuote(marketApi.banknifty, 5000);
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    if (profileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen]);
 
   const tickers = [
     toTicker("NIFTY", nifty),
@@ -116,16 +193,8 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         ))}
       </div>
 
-      <div className="ml-auto flex items-center gap-2 flex-1 max-w-md">
-        <div className="flex-1 flex items-center gap-2 rounded-md border border-white/10 bg-card/60 px-3 py-1.5 focus-within:border-[var(--gold)]/50 transition">
-          <Search className="h-3.5 w-3.5 text-white/40" />
-          <input
-            placeholder="Search stocks, e.g. RELIANCE…"
-            className="flex-1 bg-transparent text-xs text-white outline-none placeholder:text-white/35"
-          />
-          <kbd className="hidden sm:block text-[10px] text-white/35 border border-white/10 rounded px-1.5 py-0.5">⌘ K</kbd>
-        </div>
-      </div>
+      {/* Spacer */}
+      <div className="ml-auto" />
 
       {/* India / USA Toggle */}
       <div className="flex items-center rounded-lg border border-white/10 bg-card/60 p-0.5 gap-0.5">
@@ -151,8 +220,22 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
       </button>
 
-      <div className="h-8 w-8 rounded-full gold-gradient grid place-items-center text-xs font-bold text-black" title={user?.phone ?? user?.email ?? "User"}>
-        {user?.name?.[0] ?? "T"}
+      {/* Profile avatar + dropdown */}
+      <div className="relative" ref={profileRef}>
+        <button
+          onClick={() => setProfileOpen((prev) => !prev)}
+          className="h-8 w-8 rounded-full gold-gradient grid place-items-center text-xs font-bold text-black hover:opacity-90 transition"
+          title={user?.phone ?? user?.email ?? "User"}
+          aria-label="Profile menu"
+          aria-haspopup="true"
+          aria-expanded={profileOpen}
+        >
+          {user?.name?.[0]?.toUpperCase() ?? "T"}
+        </button>
+
+        {profileOpen && (
+          <ProfileMenu user={user} onClose={() => setProfileOpen(false)} />
+        )}
       </div>
     </header>
   );

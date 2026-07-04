@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Gauge, ArrowUpRight, ArrowDownRight, Calendar, Activity, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Gauge, ArrowUpRight, ArrowDownRight, Calendar, Activity, RefreshCw, Clock } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { NiftyLiveCard, BankNiftyLiveCard } from "@/components/app/LiveIndexCard";
 import { marketApi, useLiveQuote } from "@/lib/marketApi";
+import { useRegion } from "@/lib/region";
 
 export const Route = createFileRoute("/app/market")({
   component: MarketPage,
@@ -43,48 +43,35 @@ function USAIndexCard({ symbol, label, ltp, pct }: { symbol: string; label: stri
 }
 
 function MarketPage() {
-  const [region, setRegion] = useState<"INDIA" | "USA">("INDIA");
+  const { region } = useRegion();
+  // Map TopBar region ("IN" | "US") to dashboard region
+  const dashRegion = region === "US" ? "USA" : "INDIA";
   const indiaData = useLiveQuote(marketApi.dashboard, 15000);
   const usaData = useLiveQuote(marketApi.dashboardUSA, 15000);
 
-  const { data, loading, error } = region === "INDIA" ? indiaData : usaData;
+  const { data, loading, error } = dashRegion === "INDIA" ? indiaData : usaData;
   const updatedAtStr = data?.updatedAt ? formatTime(data.updatedAt) : "";
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
       <DisclaimerBanner variant="compact" storageKey="em.disclaimer.market" />
-      {/* Header with Toggle */}
+
+      {/* 15-minute data delay notice */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-500/25 bg-amber-500/8 px-4 py-2.5">
+        <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+        <p className="text-xs text-amber-300/80">
+          Market data delayed by approximately 15 minutes.
+        </p>
+      </div>
+
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <PageHeader
           eyebrow="Market"
-          title={`Today's ${region} Market Overview`}
-          description={region === "INDIA" ? "Indices, sector breadth, top movers and sentiment at a glance." : "S&P 500, NASDAQ, sector breadth, top movers and sentiment at a glance."}
+          title={`${dashRegion === "INDIA" ? "India" : "USA"} Market Overview`}
+          description={dashRegion === "INDIA" ? "Indices, sector breadth, top movers and sentiment at a glance." : "S&P 500, NASDAQ, sector breadth, top movers and sentiment at a glance."}
         />
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:self-end">
-          {/* Region Toggle */}
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
-            <button
-              onClick={() => setRegion("INDIA")}
-              className={`px-4 py-2 rounded transition-all text-sm font-semibold ${
-                region === "INDIA"
-                  ? "bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/50"
-                  : "text-white/60 hover:text-white/80"
-              }`}
-            >
-              INDIA
-            </button>
-            <button
-              onClick={() => setRegion("USA")}
-              className={`px-4 py-2 rounded transition-all text-sm font-semibold ${
-                region === "USA"
-                  ? "bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/50"
-                  : "text-white/60 hover:text-white/80"
-              }`}
-            >
-              USA
-            </button>
-          </div>
-
           {/* Update Timer */}
           {updatedAtStr && (
             <div className="text-[10px] text-white/40 flex items-center gap-1">
@@ -96,7 +83,7 @@ function MarketPage() {
       </div>
 
       {/* INDIA MARKET VIEW */}
-      {region === "INDIA" && (
+      {dashRegion === "INDIA" && (
         <>
           {/* Row 1: Live Indices + Sentiment */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -390,7 +377,7 @@ function MarketPage() {
       )}
 
       {/* USA MARKET VIEW */}
-      {region === "USA" && (
+      {dashRegion === "USA" && (
         <>
           {/* Row 1: Major Indices + Sentiment */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

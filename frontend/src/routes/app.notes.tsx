@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
-import { FileText, Download, Upload, FolderOpen, Search, Bookmark, BookmarkCheck, ArrowDownAZ, Clock, TrendingUp, Lock, X, Eye } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FileText, Download, FolderOpen, Search, Bookmark, BookmarkCheck, ArrowDownAZ, Clock, TrendingUp, Lock, X, Eye } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { useAuth, usePlan } from "@/lib/auth";
@@ -61,9 +61,6 @@ function NotesPage() {
   const [sort, setSort] = useState<Sort>("Recent");
   const [favsOnly, setFavsOnly] = useState(false);
   const [favs, setFavs] = useState<Set<string>>(new Set());
-  const [uploaded, setUploaded] = useState<{ name: string; size: string }[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
-
   // Membership release system limits
   const months = getMonthsSinceJoined(user?.memberSince);
   const premiumLimit = 2 + months * 2; // Premium users get 2 + 2/month
@@ -87,14 +84,6 @@ function NotesPage() {
   const isPremiumYearlyOrFounder = plan === "PremiumYearly" || plan === "Founder";
   const canDownload = canDownloadPdf(plan);
 
-  const onFiles = (files?: FileList | null) => {
-    if (!files) return;
-    const added = Array.from(files).map((f) => ({
-      name: f.name,
-      size: `${(f.size / 1024 / 1024).toFixed(2)} MB`,
-    }));
-    setUploaded((prev) => [...added, ...prev]);
-  };
 
   const toggleFav = (id: string) =>
     setFavs((prev) => {
@@ -196,45 +185,6 @@ function NotesPage() {
           >
             Upgrade Options
           </a>
-        </div>
-      )}
-
-      {/* Upload area (admin placeholder) */}
-      {isAdmin && (
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => { e.preventDefault(); onFiles(e.dataTransfer.files); }}
-          className="rounded-xl border border-dashed border-[var(--gold)]/40 bg-[var(--gold)]/5 p-6 text-center hover:bg-[var(--gold)]/10 transition cursor-pointer"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="h-6 w-6 text-[var(--gold)] mx-auto" />
-          <p className="mt-2 text-sm text-white font-semibold">Drop PDFs here or click to upload</p>
-          <p className="text-[11px] text-white/45 mt-0.5">
-            Admin panel placeholder — connect storage to persist uploads.
-          </p>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="application/pdf"
-            multiple
-            className="hidden"
-            onChange={(e) => onFiles(e.target.files)}
-          />
-        </div>
-      )}
-
-      {isAdmin && uploaded.length > 0 && (
-        <div className="mt-4 rounded-xl border border-white/10 bg-card/60 p-4">
-          <p className="text-[11px] uppercase tracking-wider text-[var(--gold)] mb-2">Recently uploaded (session)</p>
-          <ul className="space-y-1.5">
-            {uploaded.map((u, i) => (
-              <li key={i} className="text-xs text-white/75 flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5 text-[var(--gold)]" />
-                <span className="truncate">{u.name}</span>
-                <span className="text-white/40 ml-auto">{u.size}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       )}
 
