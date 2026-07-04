@@ -21,7 +21,7 @@ export const PLANS: PlanMeta[] = [
   { id: "Premium",         label: "Premium",                       price: "₹599",   period: "/ Month",    badge: "MOST POPULAR",  color: "#d4af37" },
   { id: "PremiumYearly",   label: "Premium Yearly",                price: "₹4,999", period: "/ Year",     badge: "BEST VALUE",    color: "#d4af37" },
   { id: "BeginnerProgram", label: "Beginner Program",              price: "₹9,999", period: "/ One Time", badge: "SPECIALIZED",   color: "#a855f7" },
-  { id: "Founder",         label: "Founder Lifetime",              price: "₹21,000",period: "/ One Time", badge: "LIFETIME",      color: "#facc15" },
+  { id: "Founder",         label: "Founder Program",              price: "₹21,000",period: "/ One Time", badge: "ONE TIME",      color: "#facc15" },
 ];
 
 export function getPlanMeta(id: PlanId): PlanMeta {

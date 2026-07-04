@@ -15,8 +15,8 @@ function RefundPage() {
         <li>No refunds after 7 days of purchase.</li>
         <li>No partial refunds for unused days of a subscription period.</li>
       </ul>
-      <h2 className="text-lg font-bold text-white mt-6 mb-3">2. One-Time Programs (Beginner Academy, Founder Lifetime)</h2>
-      <p className="text-sm leading-relaxed mb-3">For one-time lifetime or program purchases:</p>
+      <h2 className="text-lg font-bold text-white mt-6 mb-3">2. One-Time Programs (Beginner Academy, Founder Program)</h2>
+      <p className="text-sm leading-relaxed mb-3">For one-time program purchases:</p>
       <ul className="list-disc list-inside text-sm text-white/70 mb-4 space-y-1">
         <li>Refund requests within <strong className="text-white">48 hours</strong> of purchase may be considered if no content has been accessed.</li>
         <li>Once course content has been accessed, no refund will be provided.</li>

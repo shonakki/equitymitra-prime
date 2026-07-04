@@ -52,7 +52,7 @@ const PLAN_FEATURES: Record<PlanId, string[]> = {
     "Beginner To Confident Investor Journey",
     "Investor Awareness Program",
     "Practical Learning",
-    "Lifetime Access",
+    "Complete Syllabus & Exercises",
   ],
   Founder: [
     "All Current & Future Courses",
@@ -60,7 +60,7 @@ const PLAN_FEATURES: Record<PlanId, string[]> = {
     "Live Sessions & Workshops",
     "Founder Badge & Priority Support",
     "Unlimited Wealth Creator Reports",
-    "All Research Categories & Lifetime Access",
+    "All Research Categories",
   ],
 };
 

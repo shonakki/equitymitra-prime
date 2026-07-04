@@ -106,7 +106,7 @@ function PerformancePage() {
           </div>
           <h3 className="text-base font-bold text-white mb-1">Wealth Creator — Founder Only</h3>
           <p className="text-sm text-white/55 max-w-xs mx-auto mb-5">
-            Long-horizon multibagger ideas reserved exclusively for Founder Lifetime members.
+            Long-horizon multibagger ideas reserved exclusively for Founder Program members.
           </p>
           <a
             href="/app/subscription"

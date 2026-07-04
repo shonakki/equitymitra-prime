@@ -86,7 +86,7 @@ function PageGate({ requiredPlan, feature, description }: UpgradeGateProps) {
       </div>
 
       <p className="text-xs text-white/30">
-        30-day money-back guarantee · Cancel anytime
+        Instant activation · Cancel anytime
       </p>
     </div>
   );

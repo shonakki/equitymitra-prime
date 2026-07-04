@@ -43,7 +43,7 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
       : plan === "Premium"
       ? "Unlock Full Library & More"
       : plan === "PremiumYearly"
-      ? "Unlock Lifetime Access"
+      ? "Unlock Founder Features"
       : "Access All Features";
 
   const getNavTarget = (n: NavItem) => {

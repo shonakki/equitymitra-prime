@@ -55,13 +55,13 @@ const PLANS: Plan[] = [
     cta: "Choose Yearly",
   },
   {
-    name: "Founder Lifetime",
+    name: "Founder Program",
     price: "₹21,000",
     period: "one-time",
     badge: "First 1000 Members Only",
     founder: true,
     features: [
-      "Lifetime premium access",
+      "Premium founder access",
       "All present courses",
       "All future courses included",
       "Notes library",

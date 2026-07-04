@@ -49,7 +49,7 @@ const STATS = [
   { value: "10+", label: "Modules" },
   { value: "30+", label: "Videos" },
   { value: "Beginner", label: "Friendly" },
-  { value: "Lifetime", label: "Access" },
+  { value: "Complete", label: "Syllabus" },
 ];
 
 function BeginnerAcademyPage() {
@@ -125,7 +125,7 @@ function BeginnerAcademyPage() {
                   Unlocked & Active
                 </span>
               )}
-              <span className="text-xs text-white/40">Includes Lifetime Access · 30-day Money-back Guarantee</span>
+              <span className="text-xs text-white/40">Includes Complete Syllabus & Exercises</span>
             </div>
           </div>
 

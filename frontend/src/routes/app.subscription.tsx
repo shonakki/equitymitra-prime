@@ -60,7 +60,7 @@ const PLAN_BENEFITS: Record<PlanId, string[]> = {
     "Priority Support",
     "Unlimited Wealth Creator Reports",
     "All Research Categories",
-    "Lifetime Access",
+    "One-Time Enrollment",
   ],
 };
 
@@ -236,7 +236,7 @@ function SubscriptionPage() {
 
             {upgradeOptions.length === 0 ? (
               <div className="rounded-xl border border-white/10 bg-card/60 p-6 text-center text-xs text-white/50">
-                You are on the highest plan (Founder Lifetime).
+                You are on the highest plan (Founder Program).
               </div>
             ) : (
               upgradeOptions.map((opt) => {
