@@ -30,6 +30,7 @@ import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppMarketRouteImport } from './routes/app.market'
 import { Route as AppLearningRouteImport } from './routes/app.learning'
 import { Route as AppFounderRouteImport } from './routes/app.founder'
+import { Route as AppComingSoonRouteImport } from './routes/app.coming-soon'
 import { Route as AppBeginnerRouteImport } from './routes/app.beginner'
 import { Route as AppAnalyzeRouteImport } from './routes/app.analyze'
 import { Route as AppAccountRouteImport } from './routes/app.account'
@@ -146,6 +147,11 @@ const AppFounderRoute = AppFounderRouteImport.update({
   path: '/founder',
   getParentRoute: () => AppRoute,
 } as any)
+const AppComingSoonRoute = AppComingSoonRouteImport.update({
+  id: '/coming-soon',
+  path: '/coming-soon',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBeginnerRoute = AppBeginnerRouteImport.update({
   id: '/beginner',
   path: '/beginner',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
   '/app/beginner': typeof AppBeginnerRoute
+  '/app/coming-soon': typeof AppComingSoonRoute
   '/app/founder': typeof AppFounderRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
   '/app/beginner': typeof AppBeginnerRoute
+  '/app/coming-soon': typeof AppComingSoonRoute
   '/app/founder': typeof AppFounderRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/app/account': typeof AppAccountRoute
   '/app/analyze': typeof AppAnalyzeRoute
   '/app/beginner': typeof AppBeginnerRoute
+  '/app/coming-soon': typeof AppComingSoonRoute
   '/app/founder': typeof AppFounderRoute
   '/app/learning': typeof AppLearningRoute
   '/app/market': typeof AppMarketRoute
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/app/account'
     | '/app/analyze'
     | '/app/beginner'
+    | '/app/coming-soon'
     | '/app/founder'
     | '/app/learning'
     | '/app/market'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/app/account'
     | '/app/analyze'
     | '/app/beginner'
+    | '/app/coming-soon'
     | '/app/founder'
     | '/app/learning'
     | '/app/market'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/app/account'
     | '/app/analyze'
     | '/app/beginner'
+    | '/app/coming-soon'
     | '/app/founder'
     | '/app/learning'
     | '/app/market'
@@ -553,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFounderRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/coming-soon': {
+      id: '/app/coming-soon'
+      path: '/coming-soon'
+      fullPath: '/app/coming-soon'
+      preLoaderRoute: typeof AppComingSoonRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/beginner': {
       id: '/app/beginner'
       path: '/beginner'
@@ -654,6 +673,7 @@ interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
   AppAnalyzeRoute: typeof AppAnalyzeRoute
   AppBeginnerRoute: typeof AppBeginnerRoute
+  AppComingSoonRoute: typeof AppComingSoonRoute
   AppFounderRoute: typeof AppFounderRoute
   AppLearningRoute: typeof AppLearningRoute
   AppMarketRoute: typeof AppMarketRoute
@@ -669,6 +689,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
   AppAnalyzeRoute: AppAnalyzeRoute,
   AppBeginnerRoute: AppBeginnerRoute,
+  AppComingSoonRoute: AppComingSoonRoute,
   AppFounderRoute: AppFounderRoute,
   AppLearningRoute: AppLearningRoute,
   AppMarketRoute: AppMarketRoute,

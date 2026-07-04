@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useAuth, usePlan } from "@/lib/auth";
 import { getPlanMeta } from "@/lib/subscription";
+import { useRegion } from "@/lib/region";
 
 type NavItem = {
   label: string;
@@ -28,8 +29,10 @@ const NAV: NavItem[] = [
 
 export function AppSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const search = useRouterState({ select: (s) => s.location.search });
   const { user, logout } = useAuth();
   const plan = usePlan();
+  const { region } = useRegion();
 
   const showUpgradeCard = plan !== "Founder";
   const activePlanMeta = getPlanMeta(plan);
@@ -42,6 +45,17 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
       : plan === "PremiumYearly"
       ? "Unlock Lifetime Access"
       : "Access All Features";
+
+  const getNavTarget = (n: NavItem) => {
+    if (region === "US") {
+      const allowed = ["/app/market", "/app/subscription", "/app/account"];
+      if (!allowed.includes(n.to)) {
+        const featureKey = n.to.replace("/app/", "");
+        return { to: "/app/coming-soon", search: { feature: featureKey } };
+      }
+    }
+    return { to: n.to, search: undefined };
+  };
 
   return (
     <aside className="h-full w-64 shrink-0 border-r border-white/10 bg-sidebar/95 backdrop-blur flex flex-col">
@@ -66,12 +80,16 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
           {/* Spacing improved, font size increased, font weight and text contrast improved */}
           <ul className="space-y-1.5">
             {NAV.map((n) => {
-              const active = pathname === n.to;
+              const target = getNavTarget(n);
+              const active = region === "US"
+                ? (pathname === "/app/coming-soon" && (search as any)?.feature === n.to.replace("/app/", "")) || (pathname === n.to)
+                : pathname === n.to;
               const Icon = n.icon;
               return (
                 <li key={n.label}>
                   <Link
-                    to={n.to}
+                    to={target.to}
+                    search={target.search}
                     onClick={onClose}
                     className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 ${
                       active
@@ -88,6 +106,7 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
             })}
           </ul>
         </div>
+
 
         {showUpgradeCard && (
           <div className="rounded-xl border border-[var(--gold)]/25 bg-gradient-to-b from-[var(--gold)]/10 to-transparent p-3">

@@ -142,6 +142,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
   const { data: nifty } = useLiveQuote(marketApi.nifty, 5000);
   const { data: sensex } = useLiveQuote(marketApi.sensex, 5000);
   const { data: banknifty } = useLiveQuote(marketApi.banknifty, 5000);
+  const { data: usaDash } = useLiveQuote(marketApi.dashboardUSA, 15000);
 
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -164,9 +165,39 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
     toTicker("SENSEX", sensex),
     toTicker("BANKNIFTY", banknifty),
   ];
-  const displayTickers = tickers.every((t) => t.value === "—" && t.chg === "—" && t.pct === "—")
+  const displayIndiaTickers = tickers.every((t) => t.value === "—" && t.chg === "—" && t.pct === "—")
     ? FALLBACK_TICKERS
     : tickers;
+
+  const getUsTicker = (idx: any) => {
+    if (!idx) return { name: "—", value: "—", chg: "—", pct: "—", up: true };
+    const up = (idx.percentChange ?? 0) >= 0;
+    let name = idx.symbol || idx.key || "";
+    if (name.toLowerCase() === "dow jones") name = "DOW JONES";
+    if (name.toLowerCase() === "russell 2000") name = "RUSSELL 2000";
+    if (name.toLowerCase() === "nasdaq") name = "NASDAQ";
+    if (name.toLowerCase() === "s&p 500") name = "S&P 500";
+
+    return {
+      name,
+      value: idx.ltp?.toLocaleString("en-US", { maximumFractionDigits: 2 }) || "—",
+      chg: `${up ? "+" : ""}${(idx.percentChange || 0).toFixed(2)}%`,
+      pct: `${up ? "+" : ""}${(idx.percentChange || 0).toFixed(2)}%`,
+      up,
+    };
+  };
+
+  const usaTickers = usaDash?.indices
+    ? usaDash.indices.map(getUsTicker)
+    : [
+        { name: "S&P 500", value: "—", chg: "—", pct: "—", up: true },
+        { name: "NASDAQ", value: "—", chg: "—", pct: "—", up: true },
+        { name: "DOW JONES", value: "—", chg: "—", pct: "—", up: true },
+        { name: "RUSSELL 2000", value: "—", chg: "—", pct: "—", up: true },
+      ];
+
+  const displayTickers = region === "US" ? usaTickers : displayIndiaTickers;
+
 
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-white/10 bg-background/85 backdrop-blur flex items-center gap-3 px-3 sm:px-5">
