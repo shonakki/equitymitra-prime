@@ -31,6 +31,10 @@ interface AdminCrudPageProps<T extends { id: number }> {
   searchPlaceholder?: string;
   statusOptions?: string[];
   readOnly?: boolean;
+  libraryFilterValue?: string;
+  libraryFilterOptions?: string[];
+  libraryFilterLabel?: string;
+  onLibraryFilterChange?: (value: string) => void;
 }
 
 export function AdminCrudPage<T extends { id: number; status?: string }>({
@@ -43,6 +47,10 @@ export function AdminCrudPage<T extends { id: number; status?: string }>({
   searchPlaceholder = "Search…",
   statusOptions,
   readOnly = false,
+  libraryFilterValue,
+  libraryFilterOptions,
+  libraryFilterLabel,
+  onLibraryFilterChange,
 }: AdminCrudPageProps<T>) {
   const [rows, setRows]       = useState<T[]>([]);
   const [total, setTotal]     = useState(0);
@@ -71,6 +79,7 @@ export function AdminCrudPage<T extends { id: number; status?: string }>({
         limit: String(limit),
         ...(search ? { search } : {}),
         ...(status ? { status } : {}),
+        ...(libraryFilterValue ? { library: libraryFilterValue } : {}),
       });
       const res = await api.get<{ ok: boolean; data: T[]; total: number }>(`${apiBase}?${params}`);
       setRows(res.data);
@@ -80,7 +89,7 @@ export function AdminCrudPage<T extends { id: number; status?: string }>({
     } finally {
       setLoading(false);
     }
-  }, [apiBase, page, search, status]);
+  }, [apiBase, page, search, status, libraryFilterValue]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -169,6 +178,16 @@ export function AdminCrudPage<T extends { id: number; status?: string }>({
           >
             <option value="">All statuses</option>
             {statusOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        )}
+        {libraryFilterOptions && (
+          <select
+            value={libraryFilterValue || ""}
+            onChange={(e) => onLibraryFilterChange?.(e.target.value)}
+            className="rounded-lg border border-white/10 bg-card/60 text-xs text-white px-3 py-2 outline-none focus:border-[var(--gold)]/40"
+          >
+            <option value="">{libraryFilterLabel || "All libraries"}</option>
+            {libraryFilterOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         )}
         {selected.length > 0 && (

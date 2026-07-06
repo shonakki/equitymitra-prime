@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Play, Clock, Lock, Sparkles, X, Tv, BookOpen, Check } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Play, Clock, Lock, Sparkles, X, Tv, BookOpen, Check, Search, FileText, Download, Bookmark, BookmarkCheck, Eye, FolderOpen } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
 import { useAuth, usePlan } from "@/lib/auth";
-import { getPlanMeta, canAccessBeginnerAcademy, type PlanId } from "@/lib/subscription";
+import { getPlanMeta, canAccessBeginnerAcademy, canDownloadPdf, type PlanId } from "@/lib/subscription";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/app/beginner")({
   component: BeginnerAcademyPage,
@@ -52,6 +53,35 @@ const STATS = [
   { value: "Complete", label: "Syllabus" },
 ];
 
+type AcademyVideo = {
+  id: number;
+  title: string;
+  description: string;
+  url: string;
+  thumbnail: string;
+  category: string;
+  required_plan: string;
+  duration: string;
+  status: string;
+  library: string;
+};
+
+type AcademyNote = {
+  id: number;
+  title: string;
+  description: string;
+  url: string;
+  category: string;
+  required_plan: string;
+  release_month: number;
+  status: string;
+  library: string;
+};
+
+const TABS = ["Video Library", "Notes Library"] as const;
+
+type TabValue = (typeof TABS)[number];
+
 function BeginnerAcademyPage() {
   const plan = usePlan();
   
@@ -61,8 +91,68 @@ function BeginnerAcademyPage() {
 
   // Video Playing State
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabValue>("Video Library");
+  const [videos, setVideos] = useState<AcademyVideo[]>([]);
+  const [notes, setNotes] = useState<AcademyNote[]>([]);
+  const [videoQuery, setVideoQuery] = useState("");
+  const [noteQuery, setNoteQuery] = useState("");
+  const [videoCategory, setVideoCategory] = useState("All");
+  const [noteCategory, setNoteCategory] = useState("All");
+  const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
+  const [viewingNote, setViewingNote] = useState<AcademyNote | null>(null);
 
   const hasAccess = canAccessBeginnerAcademy(plan);
+  const canDownload = canDownloadPdf(plan);
+
+  useEffect(() => {
+    setLoadingLibrary(true);
+    const endpoint = activeTab === "Video Library" ? "/api/academy/beginner/videos" : "/api/academy/beginner/notes";
+    api.get<{ ok: boolean; data: AcademyVideo[] | AcademyNote[] }>(endpoint)
+      .then((res) => {
+        if (activeTab === "Video Library") {
+          setVideos(res.data as AcademyVideo[]);
+        } else {
+          setNotes(res.data as AcademyNote[]);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoadingLibrary(false));
+  }, [activeTab]);
+
+  const videoCategories = useMemo(() => ["All", ...Array.from(new Set(videos.map((item) => item.category).filter(Boolean)))], [videos]);
+  const noteCategories = useMemo(() => ["All", ...Array.from(new Set(notes.map((item) => item.category).filter(Boolean)))], [notes]);
+
+  const filteredVideos = useMemo(() => {
+    const query = videoQuery.trim().toLowerCase();
+    return videos.filter((item) => {
+      const matchesCategory = videoCategory === "All" || item.category === videoCategory;
+      const matchesQuery = !query || item.title.toLowerCase().includes(query) || item.description.toLowerCase().includes(query) || item.category.toLowerCase().includes(query);
+      return matchesCategory && matchesQuery;
+    });
+  }, [videoCategory, videoQuery, videos]);
+
+  const filteredNotes = useMemo(() => {
+    const query = noteQuery.trim().toLowerCase();
+    return notes.filter((item) => {
+      const matchesCategory = noteCategory === "All" || item.category === noteCategory;
+      const matchesQuery = !query || item.title.toLowerCase().includes(query) || item.description.toLowerCase().includes(query) || item.category.toLowerCase().includes(query);
+      return matchesCategory && matchesQuery;
+    });
+  }, [noteCategory, noteQuery, notes]);
+
+  const toggleBookmark = (id: number) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const canOpenItem = (requiredPlan: string) => {
+    const rank: Record<string, number> = { Starter: 0, Premium: 1, PremiumYearly: 2, BeginnerProgram: 3, Founder: 4 };
+    return rank[plan] >= rank[requiredPlan] || (requiredPlan === "BeginnerProgram" && hasAccess);
+  };
 
   const handleLessonClick = (l: Lesson) => {
     if (l.status === "Coming Soon") return;
@@ -73,6 +163,24 @@ function BeginnerAcademyPage() {
     } else {
       setPlayingVideo(`Module ${l.moduleNumber} – ${l.title}`);
     }
+  };
+
+  const handleVideoClick = (item: AcademyVideo) => {
+    if (!canOpenItem(item.required_plan)) {
+      setModalFeature(`Beginner Video: ${item.title}`);
+      setModalOpen(true);
+      return;
+    }
+    setPlayingVideo(item.title);
+  };
+
+  const handleNoteClick = (item: AcademyNote) => {
+    if (!canOpenItem(item.required_plan)) {
+      setModalFeature(`Beginner Note: ${item.title}`);
+      setModalOpen(true);
+      return;
+    }
+    setViewingNote(item);
   };
 
   return (
@@ -139,6 +247,195 @@ function BeginnerAcademyPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="space-y-4 rounded-2xl border border-white/10 bg-card/50 p-4 md:p-5">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`shrink-0 px-4 py-2 text-[11px] font-black uppercase tracking-widest border-b-2 transition ${
+                activeTab === tab ? "border-[var(--gold)] text-[var(--gold)]" : "border-transparent text-white/50 hover:text-white"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "Video Library" ? (
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-white">Beginner Academy Video Library</h3>
+                <p className="text-xs text-white/45">Search and browse beginner-friendly lessons and modules.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex items-center gap-2 rounded-md border border-white/10 bg-slate-950/60 px-3 py-2">
+                  <Search className="h-4 w-4 text-white/35" />
+                  <input
+                    value={videoQuery}
+                    onChange={(e) => setVideoQuery(e.target.value)}
+                    placeholder="Search videos…"
+                    className="bg-transparent text-xs text-white outline-none placeholder:text-white/30"
+                  />
+                </div>
+                <select
+                  value={videoCategory}
+                  onChange={(e) => setVideoCategory(e.target.value)}
+                  className="rounded-md border border-white/10 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none"
+                >
+                  {videoCategories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {loadingLibrary ? (
+              <div className="flex justify-center py-10"><div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--gold)] border-t-transparent" /></div>
+            ) : filteredVideos.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-white/40">No beginner videos match your filters.</div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredVideos.map((item) => {
+                  const locked = !canOpenItem(item.required_plan);
+                  return (
+                    <article key={item.id} onClick={() => handleVideoClick(item)} className={`group relative rounded-xl border bg-card/60 p-3 transition flex flex-col justify-between cursor-pointer ${locked ? "border-white/10 hover:border-white/20" : "border-white/10 hover:border-[var(--gold)]/30 hover:-translate-y-0.5"}`}>
+                      <div>
+                        <div className="relative h-32 w-full rounded-lg overflow-hidden border border-white/10 bg-slate-950 flex items-center justify-center">
+                          <BookOpen className="h-10 w-10 text-[var(--gold)] opacity-40 group-hover:scale-110 transition duration-300" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          {!locked && (
+                            <div className="absolute inset-0 grid place-items-center">
+                              <div className="h-10 w-10 rounded-full gold-gradient grid place-items-center text-black shadow-lg">
+                                <Play className="h-4.5 w-4.5 ml-0.5 fill-current" />
+                              </div>
+                            </div>
+                          )}
+                          <span className="absolute bottom-2 left-2 text-[9px] uppercase tracking-wider text-white/85 bg-black/65 px-2.5 py-0.5 rounded">{item.category}</span>
+                        </div>
+
+                        {locked && (
+                          <div className="absolute inset-0 rounded-xl bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1.5 z-10">
+                            <div className="h-9 w-9 rounded-full border border-purple-400/40 bg-purple-500/10 grid place-items-center">
+                              <Lock className="h-3.5 w-3.5 text-purple-400" />
+                            </div>
+                            <p className="text-[9px] font-black uppercase tracking-wider text-purple-300">{item.required_plan}</p>
+                            <span className="text-[8px] text-white/50">Click to unlock</span>
+                          </div>
+                        )}
+
+                        <div className="pt-3">
+                          <h4 className="text-sm font-bold text-white">{item.title}</h4>
+                          <p className="mt-1 text-[11px] text-white/45 line-clamp-2">{item.description}</p>
+                          <div className="mt-2 flex items-center gap-3 text-[11px] text-white/45">
+                            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {item.duration}</span>
+                            <span>{item.required_plan}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {!locked && (
+                        <div className="pt-3">
+                          <button className="w-full rounded-md gold-gradient text-black text-xs font-semibold py-1.5 hover:opacity-90 transition">Watch Lesson</button>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-white">Beginner Notes Library</h3>
+                <p className="text-xs text-white/45">Browse beginner PDF notes, playbooks and study guides.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex items-center gap-2 rounded-md border border-white/10 bg-slate-950/60 px-3 py-2">
+                  <Search className="h-4 w-4 text-white/35" />
+                  <input
+                    value={noteQuery}
+                    onChange={(e) => setNoteQuery(e.target.value)}
+                    placeholder="Search notes…"
+                    className="bg-transparent text-xs text-white outline-none placeholder:text-white/30"
+                  />
+                </div>
+                <select
+                  value={noteCategory}
+                  onChange={(e) => setNoteCategory(e.target.value)}
+                  className="rounded-md border border-white/10 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none"
+                >
+                  {noteCategories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {loadingLibrary ? (
+              <div className="flex justify-center py-10"><div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--gold)] border-t-transparent" /></div>
+            ) : filteredNotes.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-white/40">No beginner notes are available right now.</div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredNotes.map((item) => {
+                  const locked = !canOpenItem(item.required_plan);
+                  const fav = bookmarks.has(item.id);
+                  return (
+                    <article key={item.id} onClick={() => handleNoteClick(item)} className={`relative rounded-xl border bg-card/60 p-4 flex flex-col justify-between transition cursor-pointer ${locked ? "border-white/10 hover:border-white/20" : "border-white/10 hover:border-[var(--gold)]/30"}`}>
+                      <div>
+                        <div className="flex items-start justify-between">
+                          <div className="h-12 w-12 rounded-lg bg-red-500/10 border border-red-500/30 grid place-items-center text-red-400">
+                            <FileText className="h-5 w-5" />
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleBookmark(item.id);
+                            }}
+                            className={`p-1.5 rounded-md transition ${fav ? "text-[var(--gold)]" : "text-white/35 hover:text-white"}`}
+                          >
+                            {fav ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                          </button>
+                        </div>
+
+                        {locked && (
+                          <div className="absolute inset-0 rounded-xl bg-black/55 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10">
+                            <div className="h-10 w-10 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 grid place-items-center">
+                              <Lock className="h-4 w-4 text-[var(--gold)]" />
+                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-white/80">{item.required_plan}</p>
+                            <span className="text-[9px] text-[var(--gold)] underline font-semibold mt-0.5">Click to unlock</span>
+                          </div>
+                        )}
+
+                        <h4 className="mt-3 text-sm font-semibold text-white">{item.title}</h4>
+                        <p className="mt-1 text-[11px] text-white/45">{item.category} · {item.description}</p>
+                      </div>
+
+                      <div className="mt-4 pt-2">
+                        {canDownload ? (
+                          <a href={item.url} target="_blank" rel="noreferrer" className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-white/15 text-white text-xs font-semibold py-2 hover:bg-white/5 transition">
+                            <Download className="h-3.5 w-3.5" /> Download PDF
+                          </a>
+                        ) : (
+                          <button className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-white/10 text-white/50 text-xs font-semibold py-2">
+                            <Eye className="h-3.5 w-3.5" /> View Only
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Curriculum Preview Section */}
@@ -226,6 +523,54 @@ function BeginnerAcademyPage() {
           })}
         </div>
       </section>
+
+      {viewingNote && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md grid place-items-center p-4">
+          <div className="relative max-w-2xl w-full h-[85vh] bg-slate-900 border border-[var(--gold)]/20 rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+            <header className="px-6 py-4 bg-slate-950/80 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-white truncate max-w-[400px]">{viewingNote.title}</h3>
+                <p className="text-[10px] text-white/40">{viewingNote.category}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {canDownload && (
+                  <a href={viewingNote.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 bg-[var(--gold)] text-black text-xs font-bold px-3 py-1.5 rounded-md hover:opacity-90">
+                    <Download className="h-3.5 w-3.5" /> Download
+                  </a>
+                )}
+                <button onClick={() => setViewingNote(null)} className="text-white/60 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full cursor-pointer">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </header>
+            <div className="flex-1 relative overflow-y-auto p-8 bg-slate-950/50 flex flex-col gap-6 items-center">
+              <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.04]">
+                <div className="text-4xl md:text-6xl font-black tracking-widest uppercase text-white rotate-[-30deg] text-center leading-none">
+                  BEGINNER NOTES<br />CONFIDENTIAL STUDY MATERIAL
+                </div>
+              </div>
+              <div className="relative z-10 w-full max-w-lg aspect-[1/1.4] bg-slate-900/90 border border-white/5 rounded-lg p-6 flex flex-col justify-between shadow-lg">
+                <div>
+                  <div className="flex justify-between items-center text-[8px] text-white/30 uppercase tracking-widest border-b border-white/5 pb-2 mb-4">
+                    <span>EquityMitra Beginner Academy</span>
+                    <span>Study Notes</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-4 w-2/3 bg-white/15 rounded" />
+                    <div className="h-2 w-full bg-white/5 rounded" />
+                    <div className="h-2 w-full bg-white/5 rounded" />
+                    <div className="h-24 w-full bg-white/5 border border-white/10 rounded-md my-4 grid place-items-center">
+                      <span className="text-[10px] text-white/25">Beginner study material preview</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded" />
+                    <div className="h-2 w-4/5 bg-white/5 rounded" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Simulated Player */}
       {playingVideo && (

@@ -20,6 +20,12 @@ const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
 
+function ensureColumn(table, column, definition) {
+  const existing = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (existing.some((col) => col.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`);
+}
+
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 db.exec(`
@@ -107,6 +113,7 @@ db.exec(`
     required_plan TEXT    NOT NULL DEFAULT 'Premium',
     release_month INTEGER,
     sort_order    INTEGER NOT NULL DEFAULT 0,
+    library       TEXT    NOT NULL DEFAULT 'beginner-videos',
     status        TEXT    NOT NULL DEFAULT 'draft',
     created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -122,6 +129,7 @@ db.exec(`
     required_plan TEXT    NOT NULL DEFAULT 'Premium',
     release_month INTEGER,
     sort_order    INTEGER NOT NULL DEFAULT 0,
+    library       TEXT    NOT NULL DEFAULT 'beginner-notes',
     status        TEXT    NOT NULL DEFAULT 'draft',
     created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -238,6 +246,21 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_trades_status    ON trades_cms(status);
   CREATE INDEX IF NOT EXISTS idx_videos_status    ON videos_cms(status);
   CREATE INDEX IF NOT EXISTS idx_pdfs_status      ON pdfs_cms(status);
+`);
+
+ensureColumn("videos_cms", "library", "library TEXT NOT NULL DEFAULT 'beginner-videos'");
+ensureColumn("pdfs_cms", "library", "library TEXT NOT NULL DEFAULT 'beginner-notes'");
+
+if (!db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_videos_library'").get()) {
+  db.exec("CREATE INDEX idx_videos_library ON videos_cms(library)");
+}
+if (!db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_pdfs_library'").get()) {
+  db.exec("CREATE INDEX idx_pdfs_library ON pdfs_cms(library)");
+}
+
+// ─── Additional indexes and setup ───────────────────────────────────────────
+
+db.exec(`
 `);
 
 console.log(`[db] SQLite ready at ${DB_PATH}`);

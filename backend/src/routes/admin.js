@@ -27,7 +27,7 @@ function paginate(req) {
   return { limit, offset: (page - 1) * limit, page };
 }
 
-function crudRouter(table, allowedFields) {
+function crudRouter(table, allowedFields, extraWhere = "") {
   const r = require("express").Router({ mergeParams: true });
 
   // LIST
@@ -36,11 +36,14 @@ function crudRouter(table, allowedFields) {
       const { limit, offset } = paginate(req);
       const search   = req.query.search ? `%${req.query.search}%` : null;
       const status   = req.query.status || null;
+      const library  = req.query.library || null;
       const conditions = [];
       const params   = [];
 
       if (status) { conditions.push("status = ?"); params.push(status); }
       if (search)  { conditions.push("(title LIKE ? OR description LIKE ?)"); params.push(search, search); }
+      if (library) { conditions.push("library = ?"); params.push(library); }
+      if (extraWhere) { conditions.push(extraWhere); }
 
       const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
       const total = db.prepare(`SELECT COUNT(*) as cnt FROM ${table} ${where}`).get(...params).cnt;
@@ -240,8 +243,8 @@ router.get("/payments", (req, res) => {
 
 // ─── CMS Modules ─────────────────────────────────────────────────────────────
 router.use("/trades",        crudRouter("trades_cms",   ["symbol","exchange","category","side","setup","entry","target1","target2","stop_loss","risk_level","potential","notes","status"]));
-router.use("/videos",        crudRouter("videos_cms",   ["title","description","url","thumbnail","duration","category","required_plan","release_month","sort_order","status"]));
-router.use("/pdfs",          crudRouter("pdfs_cms",     ["title","description","url","category","required_plan","release_month","sort_order","status"]));
+router.use("/videos",        crudRouter("videos_cms",   ["title","description","url","thumbnail","duration","category","required_plan","release_month","sort_order","library","status"], "library IS NOT NULL"));
+router.use("/pdfs",          crudRouter("pdfs_cms",     ["title","description","url","category","required_plan","release_month","sort_order","library","status"], "library IS NOT NULL"));
 router.use("/announcements", crudRouter("announcements",["title","content","type","status"]));
 
 // ─── Research Hub CMS ────────────────────────────────────────────────────────

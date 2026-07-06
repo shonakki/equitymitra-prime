@@ -13,6 +13,7 @@ const paymentRoutes = require("./routes/payment");
 const adminRoutes   = require("./routes/admin");
 const notifyRoutes  = require("./routes/notify");
 const researchRoutes = require("./routes/research");
+const academyRoutes = require("./routes/academy");
 const { ensureSession } = require("./angel/session");
 const smartstream  = require("./angel/smartstream");
 
@@ -42,6 +43,7 @@ app.use("/api/payment", apiLimiter,  paymentRoutes);
 app.use("/api/admin",   apiLimiter,  adminRoutes);
 app.use("/api/notify",  apiLimiter,  notifyRoutes);
 app.use("/api/research", apiLimiter,  researchRoutes);
+app.use("/api/academy", apiLimiter,  academyRoutes);
 app.use("/api",         apiLimiter,  marketRoutes);
 
 app.use((req, res) => res.status(404).json({ ok: false, error: "Not found" }));
