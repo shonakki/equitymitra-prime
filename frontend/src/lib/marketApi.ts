@@ -103,17 +103,6 @@ export interface DashboardData {
   updatedAt: string;
 }
 
-export interface USADashboardData {
-  indices: Quote[];
-  sectors: SectorPerformance[];
-  gainers: GainerLoserRow[];
-  losers: GainerLoserRow[];
-  breadth: MarketBreadth & { total: number };
-  sentiment: MarketSentiment;
-  earnings: EarningsCalendarItem[];
-  updatedAt: string;
-}
-
 export const marketApi = {
   nifty: () => apiFetch<Quote>("/api/nifty"),
   banknifty: () => apiFetch<Quote>("/api/banknifty"),
@@ -121,7 +110,6 @@ export const marketApi = {
   sensex: () => apiFetch<Quote>("/api/sensex"),
   stock: (symbol: string) => apiFetch<Quote>(`/api/stock/${symbol.toUpperCase()}`),
   dashboard: () => apiFetch<DashboardData>("/api/dashboard"),
-  dashboardUSA: () => apiFetch<USADashboardData>("/api/dashboard/usa"),
 };
 
 /**

@@ -146,15 +146,6 @@ db.exec(`
     updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 
-  -- USA-specific content tables (kept separate, never mixed with India)
-  CREATE TABLE IF NOT EXISTS usa_content (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    module      TEXT    NOT NULL,
-    title       TEXT,
-    content     TEXT,
-    status      TEXT    NOT NULL DEFAULT 'draft',
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
 
   -- CMS: Research Hub (Free)
   CREATE TABLE IF NOT EXISTS chart_studies_cms (

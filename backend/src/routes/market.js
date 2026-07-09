@@ -4,7 +4,6 @@ const { cleanSymbolKey, fetchStockDetails } = require("../angel/stockInfo");
 const smartstream = require("../angel/smartstream");
 const dashboard = require("../angel/dashboard");
 const nseApi = require("../angel/nseApi");
-const { getUSADashboardData } = require("../angel/usaDashboard");
 
 const router = express.Router();
 
@@ -84,15 +83,5 @@ router.get("/dashboard", async (req, res, next) => {
   }
 });
 
-router.get("/dashboard/usa", async (req, res, next) => {
-  try {
-    const data = await cached("market_dashboard_usa", async () => {
-      return await getUSADashboardData();
-    }, 15000);
-    res.json({ ok: true, data });
-  } catch (e) {
-    next(e);
-  }
-});
 
 module.exports = router;

@@ -142,8 +142,6 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
   const { data: nifty } = useLiveQuote(marketApi.nifty, 5000);
   const { data: sensex } = useLiveQuote(marketApi.sensex, 5000);
   const { data: banknifty } = useLiveQuote(marketApi.banknifty, 5000);
-  const { data: usaDash } = useLiveQuote(marketApi.dashboardUSA, 15000);
-
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -169,60 +167,37 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
     ? FALLBACK_TICKERS
     : tickers;
 
-  const getUsTicker = (idx: any) => {
-    if (!idx) return { name: "—", value: "—", chg: "—", pct: "—", up: true };
-    const up = (idx.percentChange ?? 0) >= 0;
-    let name = idx.symbol || idx.key || "";
-    if (name.toLowerCase() === "dow jones") name = "DOW JONES";
-    if (name.toLowerCase() === "russell 2000") name = "RUSSELL 2000";
-    if (name.toLowerCase() === "nasdaq") name = "NASDAQ";
-    if (name.toLowerCase() === "s&p 500") name = "S&P 500";
-
-    return {
-      name,
-      value: idx.ltp?.toLocaleString("en-US", { maximumFractionDigits: 2 }) || "—",
-      chg: `${up ? "+" : ""}${(idx.percentChange || 0).toFixed(2)}%`,
-      pct: `${up ? "+" : ""}${(idx.percentChange || 0).toFixed(2)}%`,
-      up,
-    };
-  };
-
-  const usaTickers = usaDash?.indices
-    ? usaDash.indices.map(getUsTicker)
-    : [
-        { name: "S&P 500", value: "—", chg: "—", pct: "—", up: true },
-        { name: "NASDAQ", value: "—", chg: "—", pct: "—", up: true },
-        { name: "DOW JONES", value: "—", chg: "—", pct: "—", up: true },
-        { name: "RUSSELL 2000", value: "—", chg: "—", pct: "—", up: true },
-      ];
-
-  const displayTickers = region === "US" ? usaTickers : displayIndiaTickers;
+  const isUS = region === "US";
 
 
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-white/10 bg-background/85 backdrop-blur flex items-center gap-3 px-3 sm:px-5">
-      <button
-        onClick={onMenu}
-        className="lg:hidden text-white/70 hover:text-white"
-        aria-label="Menu"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
+      {!isUS && (
+        <button
+          onClick={onMenu}
+          className="lg:hidden text-white/70 hover:text-white"
+          aria-label="Menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
 
       <MarketStatus />
 
-      <div className="hidden lg:flex items-center gap-4 mr-2">
-        {displayTickers.map((t) => (
-          <div key={t.name} className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-wider text-white/45">{t.name}</span>
-            <span className="text-xs font-semibold text-white">{t.value}</span>
-            <span className={`text-[11px] inline-flex items-center gap-0.5 ${t.up ? "text-emerald-400" : "text-red-400"}`}>
-              {t.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {t.pct}
-            </span>
-          </div>
-        ))}
-      </div>
+      {!isUS && (
+        <div className="hidden lg:flex items-center gap-4 mr-2">
+          {displayIndiaTickers.map((t) => (
+            <div key={t.name} className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-white/45">{t.name}</span>
+              <span className="text-xs font-semibold text-white">{t.value}</span>
+              <span className={`text-[11px] inline-flex items-center gap-0.5 ${t.up ? "text-emerald-400" : "text-red-400"}`}>
+                {t.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {t.pct}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Spacer */}
       <div className="ml-auto" />

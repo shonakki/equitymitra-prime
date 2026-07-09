@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Crown, Phone, Mail, Bell, Shield, LogOut, Send, User as UserIcon, Hash, Calendar, RefreshCw } from "lucide-react";
+import { Crown, Phone, Mail, Bell, Shield, LogOut, Send, User as UserIcon, Hash, Calendar, RefreshCw, Download } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { useAuth } from "@/lib/auth";
 
