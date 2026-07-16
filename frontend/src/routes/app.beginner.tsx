@@ -48,7 +48,7 @@ const HIGHLIGHTS = [
 
 const STATS = [
   { value: "10+", label: "Modules" },
-  { value: "30+", label: "Videos" },
+  { value: "10+", label: "Videos" },
   { value: "Beginner", label: "Friendly" },
   { value: "Complete", label: "Syllabus" },
 ];

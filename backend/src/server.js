@@ -3,7 +3,6 @@ const helmet  = require("helmet");
 const morgan  = require("morgan");
 const rateLimit = require("express-rate-limit");
 const http    = require("http");
-const { WebSocketServer } = require("ws");
 
 const config       = require("./config");
 const { corsMiddleware, errorHandler } = require("./middleware");
@@ -15,7 +14,6 @@ const notifyRoutes  = require("./routes/notify");
 const researchRoutes = require("./routes/research");
 const academyRoutes = require("./routes/academy");
 const { ensureSession } = require("./angel/session");
-const smartstream  = require("./angel/smartstream");
 
 // Initialise database (runs schema migrations on startup)
 require("./db");
@@ -49,35 +47,9 @@ app.use("/api",         apiLimiter,  marketRoutes);
 app.use((req, res) => res.status(404).json({ ok: false, error: "Not found" }));
 app.use(errorHandler);
 
-// ─── HTTP + WebSocket server ──────────────────────────────────────────────────
+// ─── HTTP server ──────────────────────────────────────────────────
 
 const server = http.createServer(app);
-const wss    = new WebSocketServer({ server, path: "/ws" });
-
-function broadcast(data) {
-  const msg = JSON.stringify(data);
-  for (const client of wss.clients) {
-    if (client.readyState === 1 /* OPEN */) {
-      try { client.send(msg); } catch {}
-    }
-  }
-}
-
-wss.on("connection", (clientWs) => {
-  console.log("[ws] frontend connected, clients:", wss.clients.size);
-  clientWs.on("error", () => {});
-  clientWs.send(
-    JSON.stringify({
-      type: "snapshot",
-      data: {
-        NIFTY:     smartstream.getCandles("NIFTY"),
-        BANKNIFTY: smartstream.getCandles("BANKNIFTY"),
-      },
-    })
-  );
-});
-
-smartstream.subscribe((payload) => broadcast(payload));
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 
@@ -88,7 +60,4 @@ server.listen(config.port, async () => {
   } catch (e) {
     console.warn("[server] initial Angel login deferred:", e.message);
   }
-  smartstream.connect().catch((e) =>
-    console.warn("[smartstream] initial connect:", e.message)
-  );
 });

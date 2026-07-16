@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Gauge, ArrowUpRight, ArrowDownRight, Calendar, Activity, RefreshCw, Clock } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { DisclaimerBanner } from "@/components/app/DisclaimerBanner";
-import { NiftyLiveCard, BankNiftyLiveCard } from "@/components/app/LiveIndexCard";
+import { NiftyLiveCard, BankNiftyLiveCard, SensexLiveCard, FinniftyLiveCard } from "@/components/app/LiveIndexCard";
 import { marketApi, useLiveQuote } from "@/lib/marketApi";
 
 export const Route = createFileRoute("/app/market")({
@@ -30,11 +30,16 @@ function MarketPage() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
       <DisclaimerBanner variant="compact" storageKey="em.disclaimer.market" />
 
-      {/* 15-minute data delay notice */}
-      <div className="flex items-center gap-2 rounded-lg border border-amber-500/25 bg-amber-500/8 px-4 py-2.5">
-        <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-        <p className="text-xs text-amber-300/80">
-          Market data delayed by approximately 15 minutes.
+      {/* 15-minute data delay notice & disclaimer */}
+      <div className="flex flex-col gap-1 rounded-lg border border-amber-500/25 bg-amber-500/8 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+          <p className="text-xs text-amber-300/80 font-bold">
+            Market data delayed by approximately 15 minutes.
+          </p>
+        </div>
+        <p className="text-[10px] text-amber-400/50 pl-5.5 leading-normal">
+          Market information is updated in accordance with the licensing terms of our data providers.
         </p>
       </div>
 
@@ -58,9 +63,13 @@ function MarketPage() {
 
       {/* INDIA MARKET VIEW */}
           {/* Row 1: Live Indices + Sentiment */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <NiftyLiveCard />
-            <BankNiftyLiveCard />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <NiftyLiveCard />
+              <SensexLiveCard />
+              <BankNiftyLiveCard />
+              <FinniftyLiveCard />
+            </div>
             
             {/* Market Sentiment */}
             <div className="rounded-xl border border-[var(--gold)]/25 bg-gradient-to-b from-[var(--gold)]/10 to-card/60 p-5 flex flex-col justify-between">

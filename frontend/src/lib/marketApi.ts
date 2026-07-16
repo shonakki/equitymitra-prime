@@ -36,6 +36,7 @@ export interface Quote {
   debtToEquity?: number | null;
   revenueGrowth?: number | null;
   profitGrowth?: number | null;
+  history?: Array<{ date: string; close: number }> | null;
 }
 
 export async function apiFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {
